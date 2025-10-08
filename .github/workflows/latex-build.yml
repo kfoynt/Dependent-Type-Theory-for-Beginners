@@ -1,32 +1,41 @@
-name: Build and Upload PDF
+name: Build and Commit PDF
 
 on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write   # <-- required to push commits
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # keep the default token for fetch/push
+          persist-credentials: true
 
       - name: Set up LaTeX
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main.tex
 
-      - name: Upload PDF as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependent-type-theory
-          path: main.pdf
-
-      - name: Commit compiled PDF to repo
+      - name: Configure git user
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit compiled PDF
+        run: |
           cp main.pdf compiled.pdf
           git add compiled.pdf
           git commit -m "Add compiled PDF [skip ci]" || echo "No changes to commit"
-          git push
+
+      - name: Push commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Push back to the same branch that triggered the workflow
+          git push origin HEAD:${{ github.ref_name }}
