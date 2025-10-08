@@ -29,8 +29,8 @@ jobs:
 
       - name: Commit compiled PDF
         run: |
-          cp main.pdf compiled.pdf
-          git add compiled.pdf
+          cp main.pdf intro_dtt_for_beginners.pdf
+          git add intro_dtt_for_beginners.pdf
           git commit -m "Add compiled PDF [skip ci]" || echo "No changes to commit"
 
       - name: Push commit
