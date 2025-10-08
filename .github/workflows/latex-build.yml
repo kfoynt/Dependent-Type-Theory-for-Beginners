@@ -1,0 +1,32 @@
+name: Build and Upload PDF
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up LaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+
+      - name: Upload PDF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependent-type-theory
+          path: main.pdf
+
+      - name: Commit compiled PDF to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp main.pdf compiled.pdf
+          git add compiled.pdf
+          git commit -m "Add compiled PDF [skip ci]" || echo "No changes to commit"
+          git push
