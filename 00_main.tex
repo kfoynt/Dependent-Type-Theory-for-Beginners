@@ -1,0 +1,544 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,amsthm,stmaryrd,mathtools}
+\usepackage{hyperref} 
+\usepackage{tikz-cd}
+\usepackage{mathpartir} % for nicely typeset inference rules
+
+\newcommand{\Type}{\mathsf{Type}}
+\newcommand{\defeq}{\vcentcolon\equiv}
+\newcommand{\inl}{\mathsf{inl}}
+\newcommand{\inr}{\mathsf{inr}}
+\newcommand{\caseof}{\mathsf{case}}
+\newcommand{\Nat}{\mathsf{Nat}}
+\newcommand{\Bool}{\mathsf{Bool}}
+\newcommand{\String}{\mathsf{String}}
+
+% handy macros (non-conflicting with yours)
+\newcommand{\emptyctx}{\cdot}              % empty context
+\newcommand{\ctx}{\mathsf{ctx}}            % "is a well-formed context" judgment
+\newcommand{\judg}[3]{#1 \vdash #2 : #3}   % typing judgment \judg{\Gamma}{t}{A}
+\newcommand{\jdeq}{\equiv}                 % definitional equality (judgmental)
+\newcommand{\teq}[4]{#1 \vdash #2 \jdeq #3 : #4} % \teq{\Gamma}{t}{u}{A}
+\newcommand{\dom}{\mathsf{dom}}            % domain of a context
+
+% optional: small, named rule labels
+\newcommand{\rulename}[1]{\textsc{#1}}
+
+\begin{document}
+
+\section{Types and universes}
+
+\subsection*{The universe of types}
+
+In dependent type theory, all objects we manipulate are \emph{terms}, and each term has a \emph{type}.  
+For example, a natural number \(0\) has type \(\Nat\), and a boolean value \(\mathsf{true}\) has type \(\Bool\). We use the colon notation \(a : A\) to mean that \(a\) is a term of the type \(A\).  
+For example:
+\[
+0 : \Nat, \quad \mathsf{false} : \Bool, \quad ``hello \ world" : \String.
+\]
+But what about \(\Nat\) and \(\Bool\) themselves?  
+They too are objects in the theory and therefore must have a type.  
+The type to which all ordinary types belong is called the \emph{universe of types} and is written \(\Type\).  
+Thus we write
+\[
+\Nat : \Type, \qquad \Bool : \Type, \qquad \String : \Type.
+\]
+Intuitively, \(\Type\) is “the type of all types.”  
+However, if we were to write \(\Type : \Type\), we would obtain an inconsistency (Girard’s paradox).  
+To avoid this, type theory introduces an infinite hierarchy of universes:
+\[
+\Type_0 : \Type_1 : \Type_2 : \cdots
+\]
+Each universe \(\Type_i\) is an element of the next one, but not of itself.  
+In most practical situations, we omit universe index that a term belongs to and simply write \(\Type\). 
+
+\emph{Examples:}
+\[
+\begin{aligned}
+\Nat &:\Type_0, &\text{the type of natural numbers;}\\
+\Bool &:\Type_0, &\text{the type of booleans;}\\
+\String &:\Type_0, &\text{the type of strings;}\\
+% \mathbf{1},\,\mathbf{0} &:\Type_0, &\text{the unit and empty types.}
+\end{aligned}
+\]
+Generally, writing \(A : \Type\) means that \(A\) is itself a type.
+
+\subsection*{The simplest types: unit and empty types}
+
+Two fundamental base types in dependent type theory are the \emph{unit type} and the \emph{empty type}.  
+
+\paragraph{The unit type.}
+The unit type, written \(\mathbf{1} : \Type\), is a type with exactly one canonical inhabitant, commonly written \(\star\).
+\[
+\mathbf{1} : \Type, \qquad \star : \mathbf{1}.
+\]
+
+\paragraph{The empty type.}
+The empty type, written \(\mathbf{0} : \Type\), is a type with no inhabitants.  
+There are no terms \(a : \mathbf{0}\).  
+
+
+\subsection*{Product, sum and function types}
+
+More generally, if \(A,B : \Type\), then:
+\[
+\begin{aligned}
+A \times B &:\Type &&\text{(product type, pairs \((a,b)\));}\\
+A + B &:\Type &&\text{(sum type, disjoint union of \(A\) and \(B\));}\\
+A \to B &:\Type &&\text{(function type, functions from \(A\) to \(B\)).}
+\end{aligned}
+\]
+Each of these is itself an inhabitant of the universe \(\Type\):
+\[
+(A \to B) : \Type, \qquad (A \times B) : \Type, \qquad (A + B) : \Type.
+\]
+We will provide details in subsequent sections on how these three types are constructed from types $A$ and $B$.
+
+\section{Contexts}
+
+\subsection*{The empty context}
+The symbol \(\emptyctx\), often written simply as \(\cdot\), denotes the \emph{empty context}.
+It represents the starting point of all contexts---a situation with no assumptions.
+% Formally, it satisfies the judgment
+% \[
+% \cdot \vdash \ctx,
+% \]
+% which reads “the empty context is well-formed.”
+
+\subsection*{General contexts}
+
+First, some terminology, \(x : A\) is a called a \emph{variable declaration}.
+A context is simply a finite list of typed variable declarations.  
+For example:
+\[
+\emptyctx, \qquad
+x : \Nat, \qquad
+x : \Nat,\, y : \Bool, \qquad
+x : \Nat,\, y : \Bool,\, z : \String.
+\]
+These are four different contexts. The first, i.e., $\cdot$, denotes the empty context. The second includes only one declaration, the third includes two declarations and the forth includes three declarations. Each larger context is obtained from a smaller one by adding one more declaration.
+
+\subsection*{Extension of a context}
+Let $\Gamma$ be a context, then \(\Gamma, x : A\) is the \emph{extension} of \(\Gamma\) with a new declaration.
+
+\paragraph{Example of construction.}
+\[
+\Gamma_0 = \emptyctx, \qquad
+\Gamma_1 = \Gamma_0, x : \Nat, \qquad
+\Gamma_2 = \Gamma_1, y : \Bool, \qquad
+\Gamma_3 = \Gamma_2, z : \String.
+\]
+Hence
+\[
+\Gamma_3 = x : \Nat,\, y : \Bool,\, z : \String.
+\]
+This shows how a recursive definition generates all finite contexts.
+
+\subsection*{Inductive definition of contexts}
+
+Formally, we define the \emph{syntax of contexts} using the notation
+\[
+\Gamma ::= \emptyctx \;\mid\; \Gamma,\, x : A.
+\]
+The symbol \texttt{::=} is read as “is defined as,” and the vertical bar “\texttt{|}” means “or.”  
+Thus, this definition should be read as:
+
+\begin{quote}
+A context \(\Gamma\) is either the empty context \(\emptyctx\),  
+or an existing context extended by a new variable declaration \(x : A\).
+\end{quote}
+
+This is a \emph{recursive} or \emph{inductive} definition:  
+\begin{itemize}
+  \item The \emph{base case} says that the empty context \(\emptyctx\) is a valid context.
+  \item The \emph{inductive case} says that if \(\Gamma\) is a valid context and \(A\) is a type, then \(\Gamma, x : A\) is also a valid context.
+\end{itemize}
+
+The domain of a context $\Gamma$ is denoted by \(\dom(\Gamma)\), and it is the set of variables declared in \(\Gamma\).
+
+\section{Judgments}
+
+A \emph{judgment} is a basic assertion of the form we can derive in the theory.  
+We will use the following judgment forms throughout:
+\begin{quote}
+  \(\judg{\Gamma}{t}{A}\), reads “under context \(\Gamma\), the term \(t\) has type \(A\).
+\end{quote}
+Here, \(\vdash\) is the \emph{turnstile} symbol separating assumptions (on the left) from a conclusion (on the right).
+
+\paragraph{Example (typing).}
+With \(\Nat : \Type\) and \(\mathbf{1}:\Type\) (unit), the following are typing judgments:
+\[
+\emptyctx \vdash \star : \mathbf{1}
+\qquad\text{and}\qquad
+x:\Nat \vdash x : \Nat.
+\]
+The left judgement means that from the empty context we conclude that $\star$ is a term of the unit type. The right judgement is trivial. It means that if we assume that $x$ in a natural number, then we can conclude that $x$ is a natural number.
+
+\section{Reading inference rules and the rule bar}
+
+An \emph{inference rule} has the schematic form
+\[
+\inferrule*[right=\rulename{Name}]{
+\textit{premise}_1 \quad \cdots \quad \textit{premise}_n
+}{
+\textit{conclusion}
+}
+\]
+The long \emph{horizontal rule bar} separates premises (above) from the conclusion (below).  
+If there are no premises, the rule is an \emph{axiom} (always available).
+
+\paragraph{Example.}
+\begin{itemize}
+  \item \emph{Unit introduction.}
+  \[
+  \inferrule*[right=\rulename{1-Intro}]{
+  }{
+  \judg{\Gamma}{\star}{\mathbf{1}}
+  }
+  \]
+\end{itemize}
+The Unit introduction example reads as ``without any assumptions and under any context $\Gamma$ we conclude that $\star$ is of the unit type''.
+
+\section{Constructors and canonical forms}
+
+In type theory, each type is defined by specifying its \emph{constructors}—the canonical ways of producing elements (terms) of that type.  
+Constructors determine how we can \emph{build} terms of a given type, and by extension, how we can reason about or eliminate them.
+
+Formally, for a type \(A : \Type\), a constructor is a term-forming rule of the form
+\[
+\frac{\Gamma \vdash t_1 : A_1 \quad \dots \quad \Gamma \vdash t_n : A_n}{\Gamma \vdash c(t_1,\dots,t_n) : A},
+\]
+which specifies how a new term \(c(t_1,\dots,t_n)\) of type \(A\) can be formed from existing terms of other types \(A_1,\dots,A_n\).  
+Each type comes with one or more constructors that uniquely determine its canonical inhabitants.
+
+\paragraph{Examples.}
+
+\begin{itemize}
+  \item \textbf{Unit type.}  
+  The unit type \(\mathbf{1}\) has exactly one constructor:
+  \[
+  \frac{}{\,\star : \mathbf{1}\,}.
+  \]
+  Thus, \(\star\) is the only canonical inhabitant of \(\mathbf{1}\). Note that this is equivalent to the ``unit introduction'' example. We just ommitted the context $\Gamma$, since the construction holds for any $\Gamma$.
+
+  \item \textbf{Empty type.}  
+  The empty type \(\mathbf{0}\) has \emph{no} constructors.  
+  Therefore, there are no canonical terms \(a : \mathbf{0}\). This make sense, since by definition the empty type is empty.
+
+  \item \textbf{Sum type.}  
+  For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+  \[
+  \frac{a : A}{\inl(a) : A + B}
+  \qquad\text{and}\qquad
+  \frac{b : B}{\inr(b) : A + B}.
+  \]
+  The first constructor \(\inl\) injects values from the left component \(A\),
+  and the second constructor \(\inr\) injects values from the right component \(B\).
+  These two rules fully describe the canonical forms of elements of \(A + B\).
+\end{itemize}
+
+\paragraph{Intuition.}
+Constructors are the primitive building blocks of each type.  
+For instance, every term of \(A + B\) is either constructed as \(\inl(a)\) for some \(a : A\), or as \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.  
+This property allows us to reason about sum types by \emph{case analysis}, which we will define later.
+
+\section{Well-formed contexts \texorpdfstring{(\(\Gamma \vdash \ctx\))}{(Gamma |- ctx)}}
+
+We write the \emph{well-formedness} judgment
+\[
+\Gamma \vdash \ctx
+\]
+and read it as “\(\Gamma\) is a well-formed context.” The symbol \(\ctx\) is a
+fixed tag (a nullary predicate) used only on the right of \(\vdash\) to denote
+this judgment; it is not a type.
+
+\paragraph{Domain and freshness.}
+The set of variables declared in \(\Gamma\) is its \emph{domain}, written
+\(\dom(\Gamma)\). It is defined inductively by
+\[
+\dom(\emptyctx) \defeq \emptyset,
+\qquad
+\dom(\Gamma, x:A) \defeq \dom(\Gamma) \cup \{x\}.
+\]
+We write \(x \notin \dom(\Gamma)\) to express that \(x\) is \emph{fresh} for \(\Gamma\).
+We use the usual membership notation \((x:A)\in\Gamma\) to mean that the
+declaration \(x:A\) occurs somewhere in \(\Gamma\).
+
+\subsection*{What does it mean for a context to be well-formed?}
+
+Intuitively, a context \(\Gamma\) is \emph{well-formed} if every declaration inside it makes sense:  
+each type appearing in a declaration is itself already a valid type in the smaller context preceding it. Formally, recall that a context is a sequence of variable declarations:
+\[
+\Gamma \defeq x_1 : A_1,\, x_2 : A_2,\, \dots,\, x_n : A_n.
+\]
+We say that such a context is \emph{well-formed}, written
+\[
+\Gamma \vdash \ctx,
+\]
+if and only if the following recursive conditions hold:
+\begin{itemize}
+  \item The empty context is well-formed:
+    \[
+    \emptyctx \vdash \ctx.
+    \]
+  \item If \(\Gamma \vdash \ctx\) and the type \(A\) is well-formed under \(\Gamma\),
+    i.e.\ \(\judg{\Gamma}{A}{\Type}\), and the variable \(x\) is fresh
+    (\(x \notin \dom(\Gamma)\)),  
+    then the extended context \(\Gamma, x:A\) is well-formed:
+    \[
+    \Gamma, x:A \vdash \ctx.
+    \]
+\end{itemize}
+
+Intuitively, this means that the declarations in a context must be arranged so
+that each type depends only on variables that have been declared earlier.
+
+\paragraph{Example.}
+\[
+x:\Nat,\, y:\Bool,\, z:\String \vdash \ctx
+\]
+is well-formed, since each type (\(\Nat\), \(\Bool\), \(\String\)) is already a valid
+type in the previous context.
+
+\paragraph{Dependent example.}
+\[
+x:\Nat,\, y: (\Bool, x) \vdash \ctx
+\]
+is also well-formed, because
+\((\Bool, x)\) is a type depending on \(x\), and \(x\) has already been declared.
+
+\paragraph{Non-example.}
+\[
+y:(\Bool, x),\, x:\Nat \not\vdash \ctx,
+\]
+because \(y\)’s type refers to \(x\), but \(x\) has not yet been declared at that point.
+
+\paragraph{In summary.}
+A context is well-formed precisely when every variable declaration in it is
+meaningful in the smaller context built from the declarations before it.  
+This ensures that type dependencies are acyclic and well-scoped.
+
+\subsection*{Formation rules for contexts}
+
+We inductively generate well-formed contexts with two rules.
+
+\medskip
+\noindent
+\emph{Empty context.}
+\[
+\inferrule*[right=\rulename{Ctx-Empty}]{
+}{
+\emptyctx \vdash \ctx
+}
+\]
+
+\medskip
+\noindent
+\emph{Extension.}
+\[
+\inferrule*[right=\rulename{Ctx-Ext}]{
+\Gamma \vdash \ctx
+\quad
+\judg{\Gamma}{A}{\Type}
+\quad
+x \notin \dom(\Gamma)
+}{
+\Gamma, x:A \vdash \ctx
+}
+\]
+The side condition \(x \notin \dom(\Gamma)\) enforces that variable names in a
+context are pairwise distinct.
+
+\subsection*{Basic facts}
+From \(\Gamma \vdash \ctx\) and \((x:A)\in\Gamma\) we may derive the trivial
+\emph{variable rule}:
+\[
+\inferrule*[right=\rulename{Var}]{
+\Gamma \vdash \ctx
+\quad
+(x:A)\in\Gamma
+}{
+\judg{\Gamma}{x}{A}
+}
+\]
+
+\subsection*{Examples and a non-example}
+
+Assume we have the closed type declarations \(\emptyctx \vdash \Nat:\Type\),
+\(\emptyctx \vdash \Bool:\Type\), and \(\emptyctx \vdash \String:\Type\).
+Then the following derivations show well-formed contexts:
+
+\medskip
+\noindent
+\emph{Example 1.} \(\emptyctx \vdash \ctx\) by \rulename{Ctx-Empty}.
+
+\medskip
+\noindent
+\emph{Example 2.}
+\[
+\inferrule*[right=\rulename{Ctx-Ext}]{
+\emptyctx \vdash \ctx
+\quad
+\emptyctx \vdash \Nat:\Type
+\quad
+x \notin \dom(\emptyctx)
+}{
+x:\Nat \vdash \ctx
+}
+\]
+
+\medskip
+\noindent
+\emph{Example 3.}
+\[
+\inferrule*[right=\rulename{Ctx-Ext}]{
+x:\Nat \vdash \ctx
+\quad
+\judg{x:\Nat}{\Bool}{\Type}
+\quad
+y \notin \dom(x:\Nat)
+}{
+x:\Nat,\, y:\Bool \vdash \ctx
+}
+\]
+
+\medskip
+\noindent
+\emph{Non-example (duplicate name).}
+\[
+x:\Nat,\, x:\Bool \not\vdash \ctx
+\]
+since $x \in \dom(x:\Bool)$ violates $x\notin\dom(x:\Nat)$, meaning that $x$ is not fresh.
+
+\subsection*{Worked derivations: recursively checking well-formedness}
+
+We illustrate how to \emph{recursively} apply the context rules
+\[
+\inferrule*[right=\rulename{Ctx-Empty}]{ }{\emptyctx \vdash \ctx}
+\qquad
+\inferrule*[right=\rulename{Ctx-Ext}]{\Gamma \vdash \ctx \quad \judg{\Gamma}{A}{\Type} \quad x \notin \dom(\Gamma)}{\Gamma,x\!:\!A \vdash \ctx}
+\]
+to decide whether a given sequence of declarations forms a well-formed context. Throughout, assume the base types are available in the empty context:
+\[
+\emptyctx \vdash \Nat:\Type,\qquad \emptyctx \vdash \Bool:\Type,\qquad \emptyctx \vdash \String:\Type.
+\]
+
+\paragraph{Example 1 (non-dependent).}
+Check \(x:\Nat,\, y:\Bool \vdash \ctx\).
+
+\[
+\resizebox{\linewidth}{!}{$
+\inferrule*[right=\rulename{Ctx-Ext}]{
+  \inferrule*[right=\rulename{Ctx-Ext}]{
+    \inferrule*[right=\rulename{Ctx-Empty}]{}{ \emptyctx \vdash \ctx }
+    \and \judg{\emptyctx}{\Nat}{\Type}
+    \and x \notin \dom(\emptyctx)
+  }{ x:\Nat \vdash \ctx }
+  \and \judg{x:\Nat}{\Bool}{\Type}
+  \and y \notin \dom(x:\Nat)
+}{
+  x:\Nat,\, y:\Bool \vdash \ctx
+}
+$}
+\]
+Reading bottom-up:
+start with \(\emptyctx\) via \rulename{Ctx-Empty};
+extend by \(x:\Nat\) using \(\judg{\emptyctx}{\Nat}{\Type}\);
+then extend by \(y:\Bool\) using \(\judg{x:\Nat}{\Bool}{\Type}\) and freshness.
+
+\paragraph{Non-example (dependency out of order).}
+Consider \(y:(\Bool,x),\, x:\Nat\).
+Attempting \rulename{Ctx-Ext} on the first declaration requires
+\(\judg{\emptyctx}{(\Bool,x)}{\Type}\).
+But in \(\emptyctx\) there is no variable \(x:\Nat\), so we cannot derive
+\(\judg{\emptyctx}{x}{\Nat}\), hence \(\judg{\emptyctx}{(\Bool,x)}{\Type}\) fails.
+Therefore
+\[
+y:(\Bool,x),\, x:\Nat \not\vdash \ctx.
+\]
+
+\paragraph{Non-example (duplicate name).}
+Consider \(x:\Nat,\, x:\Bool\). The second extension violates freshness since
+\(x \in \dom(x:\Nat)\). Thus the side condition \(x \notin \dom(\Gamma)\) fails and
+\[
+x:\Nat,\, x:\Bool \not\vdash \ctx.
+\]
+
+\medskip
+\noindent
+These derivations show that checking \(\Gamma \vdash \ctx\) reduces \emph{recursively}
+to (i) checking the smaller prefix is well-formed, (ii) checking the new
+declaration’s type is a type in that prefix, and (iii) enforcing freshness.
+
+\section{Sum types and the \texorpdfstring{$\mathsf{inl}$}{inl} and \texorpdfstring{$\mathsf{inr}$}{inr} constructors}
+
+\subsection*{Definition of the sum type}
+
+Given two types \(A : \Type\) and \(B : \Type\), their \emph{sum type}
+is written
+\[
+A + B : \Type.
+\]
+% A term of type \(A + B\) is either a term of \(A\) or a term of \(B\).
+But how is $A + B$ constructed? We first need to introduce the constructors of the type $A+B$. For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+\[
+\frac{a : A}{\inl(a) : A + B}
+\qquad\text{and}\qquad
+\frac{b : B}{\inr(b) : A + B}.
+\]
+The first constructor \(\inl\) injects values into $A+B$ from the left component \(A\), and the second constructor \(\inr\) injects values into $A+B$ from the right component \(B\). These two rules fully describe the canonical forms of elements of \(A + B\).
+
+\paragraph{Intuition.}
+Constructors are the primitive building blocks of each type.  
+For instance, every term of \(A + B\) is either \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.
+
+\paragraph{Comment.} A potential realization of the $\inl$ and $\inr$ constructors is
+\[
+\inl(a)\defeq (\mathsf{true},a),\quad
+\inr(b)\defeq (\mathsf{false},b).
+\]
+However, they are \emph{not} needed to use sums soundly: the inductive rules already give full computational content. This is something which will be discussed later in more depth.
+
+\paragraph{Example: How \(A + B\) looks like?}
+
+To make the idea of a sum type concrete, let us take two small finite types:
+\[
+A \defeq \{\mathsf{red},\, \mathsf{green}\}, 
+\qquad
+B \defeq \{0,\,1\}.
+\]
+Then the sum type \(A + B\) consists of all elements of \(A\) tagged by \(\inl\),
+and all elements of \(B\) tagged by \(\inr\):
+\[
+A + B \;=\;
+\{\inl(\mathsf{red}),\; \inl(\mathsf{green}),\;
+  \inr(0),\; \inr(1)\}.
+\]
+Intuitively, \(\inl(a)\) means “a value coming from \(A\), left side of the sum,” and
+\(\inr(b)\) means “a value coming from \(B\), right side of the sum.”. 
+
+\bigskip
+\noindent
+This can be illustrated in tabular form:
+
+\[
+\begin{array}{c|c|c}
+\text{Element of } A & \text{Constructor} & \text{Element of } A + B \\ \hline
+\mathsf{red} & \inl & \inl(\mathsf{red}) \\
+\mathsf{green} & \inl & \inl(\mathsf{green}) \\ \hline
+0 & \inr & \inr(0) \\
+1 & \inr & \inr(1)
+\end{array}
+\]
+In general, every element of \(A + B\) is either of the form
+\(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\). If desired, we can also represent the injections diagrammatically:
+\[
+\begin{tikzcd}
+A \arrow[dr, "\inl"'] & & B \arrow[dl, "\inr"] \\
+& A + B &
+\end{tikzcd}
+\]
+This expresses that both \(A\) and \(B\) “feed into” the coproduct \(A + B\) using the constructors $\inl$ and $\inr$.
+
+
+\end{document}
