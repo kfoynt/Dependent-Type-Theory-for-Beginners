@@ -4,7 +4,7 @@
 \usepackage{tikz-cd}
 \usepackage{mathpartir} % for nicely typeset inference rules
 
-\newcommand{\Type}{\mathsf{Type}}
+\newcommand{\Type}{\ensuremath{\mathsf{Type}}}
 \newcommand{\defeq}{\vcentcolon\equiv}
 \newcommand{\inl}{\mathsf{inl}}
 \newcommand{\inr}{\mathsf{inr}}
@@ -37,7 +37,7 @@
 
 \section{Types and universes}
 
-\subsection*{The universe of types}
+\subsection*{Types}
 
 In dependent type theory, all objects we manipulate are \emph{terms}, and each term has a \emph{type}.  
 For example, a natural number \(0\) has type \(\Nat\), and a boolean value \(\mathsf{true}\) has type \(\Bool\). We use the colon notation \(a : A\) to mean that \(a\) is a term of the type \(A\).  
@@ -45,6 +45,21 @@ For example:
 \[
 0 : \Nat, \quad \mathsf{false} : \Bool, \quad ``hello \ world" : \String.
 \]
+
+% \paragraph{Unit and empty types.} Two fundamental base types in dependent type theory are the \emph{unit type} and the \emph{empty type}.  
+
+% \textit{The unit type.} The unit type, written \(\mathbf{1} : \Type\), is a type with exactly one canonical inhabitant, commonly written \(\star\).
+% \[
+% \mathbf{1} : \Type, \qquad \star : \mathbf{1}.
+% \]
+
+% \textit{The empty type.} The empty type, written \(\mathbf{0} : \Type\), is a type with no inhabitants.  
+% There are no terms \(a : \mathbf{0}\).  
+
+% In subsequent sections, we will define more complex types.
+
+\subsection*{Universes}
+
 But what about \(\Nat\) and \(\Bool\) themselves?  
 They too are objects in the theory and therefore must have a type.  
 The type to which all ordinary types belong is called the \emph{universe of types} and is written \(\Type\).  
@@ -56,52 +71,152 @@ Intuitively, \(\Type\) is “the type of all types.”
 However, if we were to write \(\Type : \Type\), we would obtain an inconsistency (Girard’s paradox).  
 To avoid this, type theory introduces an infinite hierarchy of universes:
 \[
-\Type_0 : \Type_1 : \Type_2 : \cdots
+\Type_0,\;\Type_1,\;\Type_2,\;\dots
 \]
-Each universe \(\Type_i\) is an element of the next one, but not of itself.  
-In most practical situations, we omit universe index that a term belongs to and simply write \(\Type\). 
-
-\emph{Examples:}
+Each universe is itself a type in the next one, forming a cumulative hierarchy:
 \[
-\begin{aligned}
-\Nat &:\Type_0, &\text{the type of natural numbers;}\\
-\Bool &:\Type_0, &\text{the type of booleans;}\\
-\String &:\Type_0, &\text{the type of strings;}\\
-% \mathbf{1},\,\mathbf{0} &:\Type_0, &\text{the unit and empty types.}
-\end{aligned}
+\Type_m : \Type_n \quad \text{for } m < n.
 \]
-Generally, writing \(A : \Type\) means that \(A\) is itself a type.
+Intuitively, $\Type_0$ is the universe of ``small'' types (such as $\Nat$, $\Bool$, etc.), $\Type_1$ is the universe of ``types of small types,'' and so on. ``In practice,'' we often omit universe indices and simply write $\Type$
+when the specific level is irrelevant.
 
-\subsection*{The simplest types: unit and empty types}
 
-Two fundamental base types in dependent type theory are the \emph{unit type} and the \emph{empty type}.  
+\section{Introduction to the notation \texorpdfstring{$\lambda x\!:\!A.\,t$}{λx:A.t}}
 
-\paragraph{The unit type.}
-The unit type, written \(\mathbf{1} : \Type\), is a type with exactly one canonical inhabitant, commonly written \(\star\).
+The expression
 \[
-\mathbf{1} : \Type, \qquad \star : \mathbf{1}.
+\lambda x\!:\!A.\,t
 \]
+is called a \emph{lambda abstraction} or \emph{function definition}.  
+It denotes a function that takes an input \(x\) of type \(A\) and returns the term \(t\) as its output.
 
-\paragraph{The empty type.}
-The empty type, written \(\mathbf{0} : \Type\), is a type with no inhabitants.  
-There are no terms \(a : \mathbf{0}\).  
+\subsection*{Structure}
 
+The components of the expression are as follows:
 
-\subsection*{Product, sum and function types}
-
-More generally, if \(A,B : \Type\), then:
 \[
-\begin{aligned}
-A \times B &:\Type &&\text{(product type, pairs \((a,b)\));}\\
-A + B &:\Type &&\text{(sum type of \(A\) and \(B\));}\\
-A \to B &:\Type &&\text{(function type  from \(A\) to \(B\)).}
-\end{aligned}
+\begin{array}{ll}
+\lambda & \text{(the ``lambda'' symbol introducing a function);} \\
+x & \text{(the variable name of the function argument);} \\
+:A & \text{(the type annotation for the variable);} \\
+. & \text{(a separator between the argument and the function body);} \\
+t & \text{(the function body, possibly depending on \(x\)).}
+\end{array}
 \]
-Each of these is itself an inhabitant of the universe \(\Type\):
+
+Hence, the expression
 \[
-(A \to B) : \Type, \qquad (A \times B) : \Type, \qquad (A + B) : \Type.
+\lambda x\!:\!A.\,t
 \]
-We will provide details in subsequent sections on how these three types are constructed from types $A$ and $B$.
+should be read as
+\begin{quote}
+``the function that takes an argument \(x\) of type \(A\) and returns \(t\).''  
+\end{quote}
+
+\subsection*{Examples}
+
+\paragraph{Identity function.}
+\[
+\lambda x\!:\!\Nat.\,x
+\]
+This denotes the function that takes a natural number \(x\) and returns \(x\) itself.  
+Its type is \(\Nat \to \Nat\).
+
+\paragraph{Constant function.}
+\[
+\lambda x\!:\!\Nat.\,0
+\]
+This function ignores its input and always returns \(0\).  
+Type: \(\Nat \to \Nat\).
+
+\paragraph{Boolean negation.}
+\[
+\lambda b\!:\!\Bool.\;
+\caseof(b,\;
+  \lambda\_.\,\mathsf{false},\;
+  \lambda\_.\,\mathsf{true})
+\]
+This represents the Boolean negation function, of type \(\Bool \to \Bool\). The expression
+\[
+\caseof(b,\;
+  \lambda\_.\,\mathsf{false},\;
+  \lambda\_.\,\mathsf{true})
+\]
+is the \emph{eliminator} (or destructor) for the boolean type.
+It performs a case distinction depending on whether \(b\) is
+\(\mathsf{true}\) or \(\mathsf{false}\):
+\[
+\caseof(b,\;
+  \lambda\_.\,t_1,\;
+  \lambda\_.\,t_2)
+\;\text{means}\;
+\begin{cases}
+t_1 & \text{if } b = \mathsf{true},\\
+t_2 & \text{if } b = \mathsf{false}.
+\end{cases}
+\]
+The underscore ``\_'' denotes an \emph{ignored argument};
+for instance, \(\lambda\_.\,\mathsf{false}\) is the function that always returns
+\(\mathsf{false}\) regardless of its input.
+Hence
+\[
+\lambda b\!:\!\Bool.\;
+\caseof(b,\;
+  \lambda\_.\,\mathsf{false},\;
+  \lambda\_.\,\mathsf{true})
+\]
+defines the boolean negation function, i.e.\ a function that returns
+\(\mathsf{false}\) when \(b\) is true and \(\mathsf{true}\) when \(b\) is false.
+
+\subsection*{Function application and computation}
+
+If \(f\) is a lambda abstraction and \(a\) is an argument of the appropriate type,  
+we apply \(f \jdeq \lambda x\!:\!A.\,t \) to \(a\) by writing
+\[
+f\,a.
+\]
+The result is obtained by substituting \(a\) for all free occurrences of \(x\) in the body \(t\):
+\[
+(\lambda x\!:\!A.\,t)\,a \;\jdeq\; t[a/x].
+\]
+This is called the \emph{beta reduction} (\(\beta\)-reduction), and it formalizes the usual idea of function application.
+
+\paragraph{Example.}
+\[
+(\lambda x\!:\!\Nat.\,x + 1)\,3 \;\jdeq\; 3 + 1 \;\jdeq\; 4.
+\]
+Intuitively, the lambda abstraction defines a function, and applying it ``plugs in'' the argument.
+
+\subsection*{Relation to ordinary mathematics}
+
+The notation
+\[
+\lambda x\!:\!A.\,t
+\]
+corresponds to the mathematical function expression
+\[
+x \mapsto t(x).
+\]
+The lambda notation, however, treats functions as \emph{first-class terms}—they can be
+passed as arguments, returned as results, and manipulated like any other expression.
+
+
+% \[
+% \Type_0 : \Type_1 : \Type_2 : \cdots
+% \]
+% Each universe \(\Type_i\) is an element of the next one, but not of itself.  
+% In most practical situations, we omit universe index that a term belongs to and simply write \(\Type\). 
+
+% \emph{Examples:}
+% \[
+% \begin{aligned}
+% \Nat &:\Type_0, &\text{the type of natural numbers;}\\
+% \Bool &:\Type_0, &\text{the type of booleans;}\\
+% \String &:\Type_0, &\text{the type of strings;}\\
+% % \mathbf{1},\,\mathbf{0} &:\Type_0, &\text{the unit and empty types.}
+% \end{aligned}
+% \]
+% Generally, writing \(A : \Type\) means that \(A\) is itself a type.
 
 \section{Contexts}
 
@@ -168,90 +283,139 @@ The domain of a context $\Gamma$ is denoted by \(\dom(\Gamma)\), and it is the s
 \section{Judgments}
 
 A \emph{judgment} is a basic assertion of the form we can derive in the theory.  
+
 We will use the following judgment forms throughout:
 \begin{quote}
   \(\judg{\Gamma}{t}{A}\), reads “under context \(\Gamma\), the term \(t\) has type \(A\).
 \end{quote}
-Here, \(\vdash\) is the \emph{turnstile} symbol separating assumptions (on the left) from a conclusion (on the right).
+and
+\begin{quote}
+  \(\judg{\Gamma}{a \equiv b }{A}\), reads “under context \(\Gamma\), the terms \(a\) and \(b\) are judgementally equal at type \(A\),
+\end{quote}
+and 
+\begin{quote}
+  \(\Gamma \vdash \ctx\), reads “context \(\Gamma\) is well-formed.
+\end{quote}
+Judgements are derived using inference rules, which we will discuss later. For now, let's explain judgementally equivalent means and what a well-formed context means. 
+% Here, \(\vdash\) is the \emph{turnstile} symbol separating assumptions (on the left) from a conclusion (on the right).
 
-\paragraph{Example (typing).}
-With \(\Nat : \Type\) and \(\mathbf{1}:\Type\) (unit), the following are typing judgments:
-\[
-\emptyctx \vdash \star : \mathbf{1}
-\qquad\text{and}\qquad
-x:\Nat \vdash x : \Nat.
-\]
-The left judgement means that from the empty context we conclude that $\star$ is a term of the unit type. The right judgement is trivial. It means that if we assume that $x$ in a natural number, then we can conclude that $x$ is a natural number.
+% \paragraph{Example (typing).}
+% With \(\Nat : \Type\) and \(\mathbf{1}:\Type\) (unit), the following are typing judgments:
+% \[
+% \emptyctx \vdash \star : \mathbf{1}
+% \qquad\text{and}\qquad
+% x:\Nat \vdash x : \Nat.
+% \]
+% The left judgement means that from the empty context we conclude that $\star$ is a term of the unit type. The right judgement is trivial. It means that if we assume that $x$ in a natural number, then we can conclude that $x$ is a natural number.
 
-\section{Reading inference rules and the rule bar}
 
-An \emph{inference rule} has the schematic form
-\[
-\inferrule*[right=\rulename{Name}]{
-\textit{premise}_1 \quad \cdots \quad \textit{premise}_n
-}{
-\textit{conclusion}
-}
-\]
-The long \emph{horizontal rule bar} separates premises (above) from the conclusion (below).  
-If there are no premises, the rule is an \emph{axiom} (always available).
+% \subsection*{What does it mean for a judgment to be derivable?}
+
+% When we say that a judgment is \emph{derivable from the rules} (or that \emph{there exists a proof tree}), we mean that the judgment can be obtained step by step by applying the inference rules of the system.  
+% Each inference rule allows us to infer a new judgment from some existing ones.  
+% A \emph{derivation} is simply a finite tree of such applications, ending with the judgment we want to justify.
+
+% \paragraph{Intuitive picture.}
+% The inference rules are the building blocks of reasoning in the type system.
+% Each rule says something of the form:
+% \[
+% \text{if these premises hold, then you may conclude this judgment.}
+% \]
+% A judgment is said to be \emph{derivable} if there exists a finite sequence (tree)
+% of applications of these rules that ends with that judgment at its root.
+% If no such tree can be built, the judgment is \emph{not derivable} (and therefore incorrect).
+
+% \paragraph{Example: the identity function.}
+
+% Let us show that the following judgment is derivable:
+% \[
+% \judg{\emptyctx}{\lambda x\!:\!\Nat.\,x}{\Nat \to \Nat}.
+% \]
+
+% \noindent
+% We will build the derivation (proof tree) step by step.
+
+% \begin{enumerate}
+%   \item Our goal is \(\judg{\emptyctx}{\lambda x:\Nat.\,x}{\Nat \to \Nat}\).
+%   The only rule that concludes something of this form is the \rulename{\(\to\)-Intro} rule:
+%   \[
+%   \inferrule*[right=\rulename{\(\to\)-Intro}]{
+%     \judg{\Gamma,\,x\!:\!A}{t}{B}
+%   }{
+%     \judg{\Gamma}{\lambda x\!:\!A.\,t}{A \to B}
+%   }
+%   \]
+%   Thus, to apply this rule, we must show
+%   \[
+%   \judg{x:\Nat}{x}{\Nat}.
+%   \]
+
+%   \item In the context \(x:\Nat\), we can use the \rulename{Var} rule:
+%   \[
+%   \inferrule*[right=\rulename{Var}]{
+%     (x:\Nat)\in(x:\Nat)
+%   }{
+%     \judg{x:\Nat}{x}{\Nat}
+%   }
+%   \]
+%   This closes the branch of the derivation tree, since the premise is trivially satisfied.
+
+%   \item Using this result as the premise of \rulename{\(\to\)-Intro}, we conclude:
+%   \[
+%   \judg{\emptyctx}{\lambda x:\Nat.\,x}{\Nat \to \Nat}.
+%   \]
+% \end{enumerate}
+
+% \paragraph{The complete derivation tree.}
+% \[
+% \inferrule*[right=\rulename{\(\to\)-Intro}]{
+%   \inferrule*[right=\rulename{Var}]{
+%     (x:\Nat)\in(x:\Nat)
+%   }{
+%     \judg{x:\Nat}{x}{\Nat}
+%   }
+% }{
+%   \judg{\emptyctx}{\lambda x\!:\!\Nat.\,x}{\Nat \to \Nat}
+% }
+% \]
+
+% \paragraph{Why this matters.}
+% This tree is the \emph{derivation} proving that the judgment
+% \(\judg{\emptyctx}{\lambda x\!:\!\Nat.\,x}{\Nat \to \Nat}\) is correct according to the rules.
+% The existence of such a tree certifies that the judgment is derivable.
+
+% \paragraph{Contrast: a non-derivable case.}
+% Consider the judgment
+% \[
+% \judg{\emptyctx}{\lambda x\!:\!\Bool.\,x}{\Nat \to \Nat}.
+% \]
+% Attempting to apply the \rulename{\(\to\)-Intro} rule requires
+% \(\judg{x:\Bool}{x}{\Nat}\),
+% but the variable rule only gives
+% \(\judg{x:\Bool}{x}{\Bool}\).
+% There is no way to complete the derivation.
+% Hence, this judgment is \emph{not derivable}—it is \emph{incorrect}.
+
+\subsection*{Definition (judgmental/definitional equality).}
+The judgment \(\teq{\Gamma}{a}{b}{A}\) means that
+\(a\) and \(b\) are \emph{judgmentally equal at type \(A\)}. The equallity holds by computation and definitional unfolding.
 
 \paragraph{Example.}
-\begin{itemize}
-  \item \emph{Unit introduction.}
-  \[
-  \inferrule*[right=\rulename{1-Intro}]{
-  }{
-  \judg{\Gamma}{\star}{\mathbf{1}}
-  }
-  \]
-\end{itemize}
-The Unit introduction example reads as ``without any assumptions and under any context $\Gamma$ we conclude that $\star$ is of the unit type''.
-
-\section{Constructors and canonical forms}
-
-In type theory, each type is defined by specifying its \emph{constructors}—the canonical ways of producing elements (terms) of that type.  
-Constructors determine how we can \emph{build} terms of a given type, and by extension, how we can reason about or eliminate them.
-
-Formally, for a type \(A : \Type\), a constructor is a term-forming rule of the form
+Let
 \[
-\frac{\Gamma \vdash t_1 : A_1 \quad \dots \quad \Gamma \vdash t_n : A_n}{\Gamma \vdash c(t_1,\dots,t_n) : A},
+f \;\defeq\; \lambda x\!:\!\Nat.\, x + 1.
 \]
-which specifies how a new term \(c(t_1,\dots,t_n)\) of type \(A\) can be formed from existing terms of other types \(A_1,\dots,A_n\).  
-Each type comes with one or more constructors that uniquely determine its canonical inhabitants.
+Then by definition,
+\[
+f\,2 \;\jdeq\; (\lambda x\!:\!\Nat.\,x + 1)\,2 \;\jdeq\; 2 + 1 \;\jdeq\; 3.
+\]
+Hence we can write the judgment
+\[
+\judg{\emptyctx}{f\,2 \jdeq 3}{\Nat},
+\]
+which reads: “in the empty context, \(f\,2\) and \(3\) are judgmentally equal at type \(\Nat\).”
 
-\paragraph{Examples.}
-
-\begin{itemize}
-  \item \textbf{Unit type.}  
-  The unit type \(\mathbf{1}\) has exactly one constructor:
-  \[
-  \frac{}{\,\star : \mathbf{1}\,}.
-  \]
-  Thus, \(\star\) is the only canonical inhabitant of \(\mathbf{1}\). Note that this is equivalent to the ``unit introduction'' example. We just ommitted the context $\Gamma$, since the construction holds for any $\Gamma$.
-
-  \item \textbf{Empty type.}  
-  The empty type \(\mathbf{0}\) has \emph{no} constructors.  
-  Therefore, there are no canonical terms \(a : \mathbf{0}\). This make sense, since by definition the empty type is empty.
-
-  \item \textbf{Sum type.}  
-  For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
-  \[
-  \frac{a : A}{\inl(a) : A + B}
-  \qquad\text{and}\qquad
-  \frac{b : B}{\inr(b) : A + B}.
-  \]
-  The first constructor \(\inl\) injects values from the left component \(A\),
-  and the second constructor \(\inr\) injects values from the right component \(B\).
-  These two rules fully describe the canonical forms of elements of \(A + B\).
-\end{itemize}
-
-\paragraph{Intuition.}
-Constructors are the primitive building blocks of each type.  
-For instance, every term of \(A + B\) is either constructed as \(\inl(a)\) for some \(a : A\), or as \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.  
-This property allows us to reason about sum types by \emph{case analysis}, which we will define later.
-
-\section{Well-formed contexts \texorpdfstring{(\(\Gamma \vdash \ctx\))}{(Gamma |- ctx)}}
+\subsection*{Well-formed contexts \texorpdfstring{(\(\Gamma \vdash \ctx\))}{(Gamma |- ctx)}}
 
 We write the \emph{well-formedness} judgment
 \[
@@ -261,19 +425,7 @@ and read it as “\(\Gamma\) is a well-formed context.” The symbol \(\ctx\) is
 fixed tag (a nullary predicate) used only on the right of \(\vdash\) to denote
 this judgment; it is not a type.
 
-\paragraph{Domain and freshness.}
-The set of variables declared in \(\Gamma\) is its \emph{domain}, written
-\(\dom(\Gamma)\). It is defined inductively by
-\[
-\dom(\emptyctx) \defeq \emptyset,
-\qquad
-\dom(\Gamma, x:A) \defeq \dom(\Gamma) \cup \{x\}.
-\]
-We write \(x \notin \dom(\Gamma)\) to express that \(x\) is \emph{fresh} for \(\Gamma\).
-We use the usual membership notation \((x:A)\in\Gamma\) to mean that the
-declaration \(x:A\) occurs somewhere in \(\Gamma\).
-
-\subsection*{What does it mean for a context to be well-formed?}
+\paragraph{What does it mean for a context to be well-formed?}
 
 Intuitively, a context \(\Gamma\) is \emph{well-formed} if every declaration inside it makes sense:  
 each type appearing in a declaration is itself already a valid type in the smaller context preceding it. Formally, recall that a context is a sequence of variable declarations:
@@ -327,9 +479,45 @@ A context is well-formed precisely when every variable declaration in it is
 meaningful in the smaller context built from the declarations before it.  
 This ensures that type dependencies are acyclic and well-scoped.
 
-\subsection*{Formation rules for contexts}
+\section{Reading inference rules and the rule bar}
 
-We inductively generate well-formed contexts with two rules.
+An \emph{inference rule} has the schematic form
+\[
+\inferrule*[right=\rulename{Name}]{
+\textit{premise}_1 \quad \cdots \quad \textit{premise}_n
+}{
+\textit{conclusion}
+}
+\]
+The long \emph{horizontal rule bar} separates premises (above) from the conclusion (below).  
+If there are no premises, the rule is an \emph{axiom} (always available). The inference rule is used to derive judgements. 
+
+% It is important to note that the conclusion is not an actual proof. It is a \emph{definitional part of the typing relation}. In the same way, in Haskell, OCaml or TypeScript, the compiler does not \emph{prove} that \texttt{Int -> Bool} is a type; rather, the language definition \emph{declares} that whenever \texttt{Int} and \texttt{Bool} are types, the function type between them is also a type.
+
+
+% An inference rule with a horizontal bar is a \emph{meta-level typing rule}---it tells the ``compiler for the calculus'' which judgements it may conclude from which premises. For example, the arrow \emph{formation} rule
+% \[
+% \inferrule*[right=\rulename{Form}]{
+%   \judg{\Gamma}{A}{\Type} \quad \judg{\Gamma}{B}{\Type}
+% }{
+%   \judg{\Gamma}{A \to B}{\Type}
+% }
+% \]
+% plays exactly the role that a language specification plays for a real compiler: \emph{if} $A$ and $B$ are known types in $\Gamma$, \emph{then} the type checker is allowed to accept $A \to B$ as a type in the same context.
+
+% \paragraph{Another example.}
+% \begin{itemize}
+%   \item \emph{Unit introduction.}
+%   \[
+%   \inferrule*[right=\rulename{1-Intro}]{
+%   }{
+%   \judg{\Gamma}{\star}{\mathbf{1}}
+%   }
+%   \]
+% \end{itemize}
+% The Unit introduction example reads as ``without any assumptions and under any context $\Gamma$ we conclude that $\star$ is of the unit type''.
+
+\subsection*{Derivation of the empty context}
 
 \medskip
 \noindent
@@ -340,6 +528,21 @@ We inductively generate well-formed contexts with two rules.
 \emptyctx \vdash \ctx
 }
 \]
+
+\subsection*{Derivation of an extension}
+First, we provide one useful definition.
+
+\paragraph{Domain and freshness.}
+The set of variables declared in \(\Gamma\) is its \emph{domain}, written
+\(\dom(\Gamma)\). It is defined inductively by
+\[
+\dom(\emptyctx) \defeq \emptyset,
+\qquad
+\dom(\Gamma, x:A) \defeq \dom(\Gamma) \cup \{x\}.
+\]
+We write \(x \notin \dom(\Gamma)\) to express that \(x\) is \emph{fresh} for \(\Gamma\).
+We use the usual membership notation \((x:A)\in\Gamma\) to mean that the
+declaration \(x:A\) occurs somewhere in \(\Gamma\).
 
 \medskip
 \noindent
@@ -355,10 +558,9 @@ x \notin \dom(\Gamma)
 \Gamma, x:A \vdash \ctx
 }
 \]
-The side condition \(x \notin \dom(\Gamma)\) enforces that variable names in a
-context are pairwise distinct.
+The side condition \(x \notin \dom(\Gamma)\) enforces that variable names in a context are pairwise distinct. Sometimes, the side condition is not mentioned explicitly as a premise.
 
-\subsection*{Basic facts}
+\subsection*{Derivation of variables}
 From \(\Gamma \vdash \ctx\) and \((x:A)\in\Gamma\) we may derive the trivial
 \emph{variable rule}:
 \[
@@ -371,63 +573,116 @@ From \(\Gamma \vdash \ctx\) and \((x:A)\in\Gamma\) we may derive the trivial
 }
 \]
 
-\subsection*{Examples and a non-example}
+% \subsection*{Examples and a non-example}
 
-Assume we have the closed type declarations \(\emptyctx \vdash \Nat:\Type\),
-\(\emptyctx \vdash \Bool:\Type\), and \(\emptyctx \vdash \String:\Type\).
-Then the following derivations show well-formed contexts:
+% Assume we have the closed type declarations \(\emptyctx \vdash \Nat:\Type\),
+% \(\emptyctx \vdash \Bool:\Type\), and \(\emptyctx \vdash \String:\Type\).
+% Then the following derivations show well-formed contexts:
 
-\medskip
-\noindent
-\emph{Example 1.} \(\emptyctx \vdash \ctx\) by \rulename{Ctx-Empty}.
+% \medskip
+% \noindent
+% \emph{Example 1.} \(\emptyctx \vdash \ctx\) by \rulename{Ctx-Empty}.
 
-\medskip
-\noindent
-\emph{Example 2.}
+% \medskip
+% \noindent
+% \emph{Example 2.}
+% \[
+% \inferrule*[right=\rulename{Ctx-Ext}]{
+% \emptyctx \vdash \ctx
+% \quad
+% \emptyctx \vdash \Nat:\Type
+% \quad
+% x \notin \dom(\emptyctx)
+% }{
+% x:\Nat \vdash \ctx
+% }
+% \]
+
+% \medskip
+% \noindent
+% \emph{Example 3.}
+% \[
+% \inferrule*[right=\rulename{Ctx-Ext}]{
+% x:\Nat \vdash \ctx
+% \quad
+% \judg{x:\Nat}{\Bool}{\Type}
+% \quad
+% y \notin \dom(x:\Nat)
+% }{
+% x:\Nat,\, y:\Bool \vdash \ctx
+% }
+% \]
+
+% \medskip
+% \noindent
+% \emph{Non-example (duplicate name).}
+% \[
+% x:\Nat,\, x:\Bool \not\vdash \ctx
+% \]
+% since $x \in \dom(x:\Bool)$ violates $x\notin\dom(x:\Nat)$, meaning that $x$ is not fresh.
+
+\subsection*{Derivation of judgements}
+
+A \emph{derivation} of a judgment is a tree built from inference rules, with the
+judgment we want to justify placed at the root. Each node of the tree is an
+application of a rule whose premises appear above it and whose conclusion
+appears below the horizontal line. For example, using the rules defined so far, we can derive the judgment
 \[
-\inferrule*[right=\rulename{Ctx-Ext}]{
-\emptyctx \vdash \ctx
-\quad
-\emptyctx \vdash \Nat:\Type
-\quad
-x \notin \dom(\emptyctx)
-}{
-x:\Nat \vdash \ctx
-}
+\judg{\emptyctx}{x}{\mathbf{1}},
+\]
+where $\mathbf{1}$ is the \textit{unit type.} The unit type, written \(\mathbf{1} : \Type_0\), is a type with exactly one term, commonly written \(\star\):
+\[
+\mathbf{1} : \Type_0, \qquad \star : \mathbf{1}.
+\]
+The full derivation tree is:
+
+\[
+\resizebox{\linewidth}{!}{$
+  \inferrule*[right=\rulename{Var}]{
+    \inferrule*[right=\rulename{Ctx-Ext}]{
+      \inferrule*[right=\rulename{Ctx-Empty}]{ }{ \emptyctx \vdash \ctx }
+      \quad
+      \inferrule*[right=\rulename{\(\mathbf{1}\)-Form}]{ }{ \judg{\emptyctx}{\mathbf{1}}{\Type_0} }
+      \quad
+      x \notin \dom(\emptyctx)
+    }{
+      x:\mathbf{1} \vdash \ctx
+    }
+    \quad
+    (x:\mathbf{1}) \in (x:\mathbf{1})
+  }{
+    \judg{x:\mathbf{1}}{x}{\mathbf{1}}
+  }
+$}
 \]
 
-\medskip
-\noindent
-\emph{Example 3.}
+This tree reads bottom-up as follows:
+\begin{itemize}
+  \item By \rulename{Ctx-Empty}, the empty context is well-formed.
+  \item By \rulename{\(\mathbf{1}\)-Form}, the unit type \(\mathbf{1}\) is a type in the lowest universe \(\Type_0\).
+  \item By \rulename{Ctx-Ext}, extending the empty context with \(x:\mathbf{1}\) gives a well-formed context \(x:\mathbf{1}\vdash \ctx\).
+  \item By \rulename{Var}, from \(x:\mathbf{1}\vdash \ctx\) we can derive \(\judg{x:\mathbf{1}}{x}{\mathbf{1}}\).
+\end{itemize}
+
+Hence the complete derivation establishes
 \[
-\inferrule*[right=\rulename{Ctx-Ext}]{
-x:\Nat \vdash \ctx
-\quad
-\judg{x:\Nat}{\Bool}{\Type}
-\quad
-y \notin \dom(x:\Nat)
-}{
-x:\Nat,\, y:\Bool \vdash \ctx
-}
+\judg{\emptyctx}{x}{\mathbf{1}}.
 \]
 
-\medskip
-\noindent
-\emph{Non-example (duplicate name).}
-\[
-x:\Nat,\, x:\Bool \not\vdash \ctx
-\]
-since $x \in \dom(x:\Bool)$ violates $x\notin\dom(x:\Nat)$, meaning that $x$ is not fresh.
+\subsection*{Derivation of well-formedness}
 
-\subsection*{Worked derivations: recursively checking well-formedness}
-
-We illustrate how to \emph{recursively} apply the context rules
+We illustrate how to apply the context rules
 \[
 \inferrule*[right=\rulename{Ctx-Empty}]{ }{\emptyctx \vdash \ctx}
 \qquad
 \inferrule*[right=\rulename{Ctx-Ext}]{\Gamma \vdash \ctx \quad \judg{\Gamma}{A}{\Type} \quad x \notin \dom(\Gamma)}{\Gamma,x\!:\!A \vdash \ctx}
 \]
-to decide whether a given sequence of declarations forms a well-formed context. Throughout, assume the base types are available in the empty context:
+to derive a well-formed context. 
+
+\paragraph{Comment.} Often, $\Gamma \vdash \ctx$ is not added as a premise, because we already assume $\judg{\Gamma}{A}{\Type}$ in the premise list; and for this premise to be valid, it must already be the case that $\Gamma \vdash \ctx$.
+
+
+Let's now proceed to a few examples. Throughout, assume the base types are available in the empty context:
 \[
 \emptyctx \vdash \Nat:\Type,\qquad \emptyctx \vdash \Bool:\Type,\qquad \emptyctx \vdash \String:\Type.
 \]
@@ -479,75 +734,775 @@ These derivations show that checking \(\Gamma \vdash \ctx\) reduces \emph{recurs
 to (i) checking the smaller prefix is well-formed, (ii) checking the new
 declaration’s type is a type in that prefix, and (iii) enforcing freshness.
 
-\section{Sum types and the \texorpdfstring{$\mathsf{inl}$}{inl} and \texorpdfstring{$\mathsf{inr}$}{inr} constructors}
 
-\subsection*{Definition of the sum type}
+\section{Structural rules and judgmental equality}
 
-Given two types \(A : \Type\) and \(B : \Type\), their \emph{sum type}
-is written
+\subsection*{Capture-avoiding substitution}
+
+When we write a substitution \(t[a/x]\), we mean the process of
+\emph{replacing all free occurrences} of the variable \(x\) in the term \(t\)
+by the term \(a\).  
+However, care must be taken when \(t\) contains \emph{binders} (such as
+\(\lambda y.\,u\) or a context declaration \(y\!:\!B\)) that introduce new variables.
+
+\paragraph{The problem: variable capture.}
+
+If we substitute naively, a free variable of \(a\) might become
+\emph{accidentally bound} by one of these binders.
+This error is called \emph{variable capture}.
+
+\paragraph{Example (the bad case).}
+
+Consider:
 \[
-A + B : \Type.
+t \;=\; \lambda y.\,x + y,
+\qquad a \;=\; y.
 \]
-% A term of type \(A + B\) is either a term of \(A\) or a term of \(B\).
-But how is $A + B$ constructed? We first need to introduce the constructors of the type $A+B$. For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+A naive substitution \(t[a/x]\) would yield
 \[
-\frac{a : A}{\inl(a) : A + B}
-\qquad\text{and}\qquad
-\frac{b : B}{\inr(b) : A + B}.
+\lambda y.\,y + y,
 \]
-The first constructor \(\inl\) injects values into $A+B$ from the left component \(A\), and the second constructor \(\inr\) injects values into $A+B$ from the right component \(B\). These two rules fully describe the canonical forms of elements of \(A + B\).
+but now the free \(y\) from \(a\) has been captured by the binder \(\lambda y.\),
+changing its meaning completely.
+Originally, the inner \(y\) in \(a\) referred to some outer variable,
+but after substitution it refers to the bound parameter of the lambda.
 
-\paragraph{Intuition.}
-Constructors are the primitive building blocks of each type.  
-For instance, every term of \(A + B\) is either \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.
+\paragraph{The solution: capture-avoidance.}
 
-\paragraph{Comment.} A potential realization of the $\inl$ and $\inr$ constructors is
+Before performing substitution, we \emph{rename bound variables} in \(t\)
+so that they do not clash with the free variables of \(a\).
+This is called \emph{capture-avoiding substitution}.
+
+In the example above, we first rename the bound variable \(y\) in \(t\)
+to a fresh variable \(y'\):
 \[
-\inl(a)\defeq (\mathsf{true},a),\quad
-\inr(b)\defeq (\mathsf{false},b).
+t' \;\defeq\; \lambda y'.\,x + y'.
 \]
-However, they are \emph{not} needed to use sums soundly: the inductive rules already give full computational content. This is something which will be discussed later in more depth.
-
-\paragraph{Example: How \(A + B\) looks like?}
-
-To make the idea of a sum type concrete, let us take two small finite types:
+Now we can safely substitute \(a\) for \(x\):
 \[
-A \defeq \{\mathsf{red},\, \mathsf{green}\}, 
+t'[a/x] \;=\; \lambda y'.\,y + y'.
+\]
+No variable has been captured, and the meaning is preserved.
+
+\paragraph{Summary.}
+\begin{itemize}
+  \item \emph{Variable capture} occurs when a free variable in the substituting term becomes bound by a binder in the target expression.
+  \item \emph{Capture-avoiding substitution} prevents this by systematically renaming bound variables before substitution.
+  \item This ensures that substitution preserves the intended meaning of terms.
+\end{itemize}
+
+\subsection*{Preliminaries: explanation of \texorpdfstring{$\Delta$}{Delta} notation and substitution brackets \texorpdfstring{$[\,\cdot\,/\,\cdot\,]$}{[./.]}}
+
+In what follows we write contexts of the form
+\[
+\Gamma,\, x\!:\!A,\, \Delta.
+\]
+Here:
+\begin{itemize}
+  \item \(\Gamma\) is the initial prefix of the context.
+  \item \(x\!:\!A\) is the current variable declaration we are focusing on.
+  \item \(\Delta\) denotes the \emph{remainder of the context} after \(x\!:\!A\).  
+  It may contain additional declarations types that can depend on \(x\).  
+  Formally, if
+  \[
+  \Delta \;\defeq\; y_1\!:\!B_1,\, y_2\!:\!B_2,\, \dots,\, y_k\!:\!B_k,
+  \]
+  then the complete context is
+  \[
+  \Gamma,\, x\!:\!A,\, y_1\!:\!B_1,\, y_2\!:\!B_2,\, \dots,\, y_k\!:\!B_k.
+  \]
+\end{itemize}
+
+\paragraph{Substitution brackets.}
+The notation \(t[a/x]\) means \emph{capture-avoiding substitution} of the term \(a\)
+for the variable \(x\) in the expression \(t\).  
+It replaces all free occurrences of \(x\) in \(t\) by \(a\), renaming bound variables when necessary to avoid name capture.
+
+Similarly, for contexts we write \(\Delta[a/x]\) to mean “substitute \(a\) for \(x\) in every type declared in \(\Delta\)”.  
+If
+\[
+\Delta \;\defeq\; y_1\!:\!B_1,\, y_2\!:\!B_2,\, \dots,\, y_k\!:\!B_k,
+\]
+then
+\[
+\Delta[a/x] \;\defeq\; y_1\!:\!B_1[a/x],\, y_2\!:\!B_2[a/x],\, \dots,\, y_k\!:\!B_k[a/x].
+\]
+
+\paragraph{Properties.}
+\begin{itemize}
+  \item If \(x\) does not occur free in \(\Delta\), then \(\Delta[a/x] = \Delta\).
+  \item Substitution respects binding and avoids variable capture (by $\alpha$-conversion if necessary).
+\end{itemize}
+If \(\judg{\Gamma,x\!:\!A,\Delta}{b}{B}\), then \(b[a/x]\)
+denotes the term obtained by substituting \(a\) for \(x\) in \(b\).
+
+Thus, in the substitution rules, $\Delta$ represents the \emph{tail of the context}, and
+the square brackets $[a/x]$ represent standard, capture-avoiding substitution applied to
+terms, types, or all declarations within $\Delta$.
+
+\subsection*{Variable, substitution, and weakening}
+
+The following \emph{structural} principles are admissible (provable by induction on derivations) and may be used freely.
+
+\paragraph{Variable.}
+From a well-formed context, any declared variable has its declared type.
+\[
+\inferrule*[right=\rulename{Var}]{
+  \Gamma \vdash \ctx \quad (x\!:\!A)\in\Gamma
+}{
+  \judg{\Gamma}{x}{A}
+}
+\]
+
+\paragraph{Substitution (typing).}
+If \(a:A\) is derivable in \(\Gamma\) and, under an extended context \(\Gamma,x\!:\!A,\Delta\), a judgment \(\judg{\,\cdot\,}{b}{B}\) is derivable, then we may substitute \(a\) for \(x\).
+\[
+\inferrule*[right=\rulename{Subst\(_1\)}]{
+  \judg{\Gamma}{a}{A}
+  \quad
+  \judg{\Gamma,x\!:\!A,\,\Delta}{b}{B}
+}{
+  \judg{\Gamma,\,\Delta[a/x]}{\,b[a/x]\,}{\,B[a/x]\,}
+}
+\]
+
+\paragraph{Weakening (typing).}
+If \(A\) is a type in \(\Gamma\) and some judgment holds in \(\Gamma,\Delta\), we may insert a fresh, unused declaration \(x\!:\!A\) anywhere between \(\Gamma\) and \(\Delta\).
+\[
+\inferrule*[right=\rulename{Wkg\(_1\)}]{
+  \judg{\Gamma}{A}{\Type_i}
+  \quad
+  \judg{\Gamma,\,\Delta}{b}{B}
+}{
+  \judg{\Gamma,\,x\!:\!A,\,\Delta}{b}{B}
+}
+\]
+
+\paragraph{Substitution (judgmental equality).}
+\[
+\inferrule*[right=\rulename{Subst\(_2\)}]{
+  \judg{\Gamma}{a}{A}
+  \quad
+  \teq{\Gamma,x\!:\!A,\,\Delta}{b}{c}{B}
+}{
+  \teq{\Gamma,\,\Delta[a/x]}{\,b[a/x]\,}{\,c[a/x]\,}{\,B[a/x]\,}
+}
+\]
+
+\paragraph{Weakening (judgmental equality).}
+\[
+\inferrule*[right=\rulename{Wkg\(_2\)}]{
+  \judg{\Gamma}{A}{\Type_i}
+  \quad
+  \teq{\Gamma,\,\Delta}{b}{c}{B}
+}{
+  \teq{\Gamma,\,x\!:\!A,\,\Delta}{b}{c}{B}
+}
+\]
+
+\medskip
+As usual, side conditions ensure \(x\notin\dom(\Gamma)\) when extending a context.
+
+\subsection*{Judgmental equality: laws and conversion}
+
+We assume judgmental equality \(\teq{\Gamma}{a}{b}{A}\) is an \emph{equivalence relation} and is \emph{respected by typing}. Concretely, we use the following admissible rules.
+
+\paragraph{Equivalence laws (at a fixed type).}
+\[
+\resizebox{\linewidth}{!}{$
+\inferrule*[right=\rulename{Refl}]{ \judg{\Gamma}{a}{A} }{ \teq{\Gamma}{a}{a}{A} }
 \qquad
-B \defeq \{0,\,1\}.
+\inferrule*[right=\rulename{Sym}]{ \teq{\Gamma}{a}{b}{A} }{ \teq{\Gamma}{b}{a}{A} }
+\qquad
+\inferrule*[right=\rulename{Trans}]{ \teq{\Gamma}{a}{b}{A} \;\; \teq{\Gamma}{b}{c}{A} }{ \teq{\Gamma}{a}{c}{A} }
+$}
 \]
-Then the sum type \(A + B\) consists of all elements of \(A\) tagged by \(\inl\),
-and all elements of \(B\) tagged by \(\inr\):
-\[
-A + B \;=\;
-\{\inl(\mathsf{red}),\; \inl(\mathsf{green}),\;
-  \inr(0),\; \inr(1)\}.
-\]
-Intuitively, \(\inl(a)\) means “a value coming from \(A\), left side of the sum,” and
-\(\inr(b)\) means “a value coming from \(B\), right side of the sum.”. 
 
-\bigskip
-\noindent
-This can be illustrated in tabular form:
+\paragraph{Conversion (type equality transports typing).}
+\[
+\resizebox{\linewidth}{!}{$
+\inferrule*[right=\rulename{Conv-Ty}]{
+  \judg{\Gamma}{a}{A}
+  \quad
+  \teq{\Gamma}{A}{B}{\Type_i}
+}{
+  \judg{\Gamma}{a}{B}
+}
+\qquad
+\inferrule*[right=\rulename{Conv-Eq}]{
+  \teq{\Gamma}{a}{b}{A}
+  \quad
+  \teq{\Gamma}{A}{B}{\Type_i}
+}{
+  \teq{\Gamma}{a}{b}{B}
+}
+$}
+\]
+
+\section{Type universes (re-visited)}
+
+We postulate an infinite hierarchy of universes of types:
+\[
+\Type_0, \quad \Type_1, \quad \Type_2, \quad \dots
+\]
+
+Each universe is contained in the next one, and any type in \(\Type_i\)
+is also a type in \(\Type_{i+1}\).
+Formally, we have the following rules:
 
 \[
-\begin{array}{c|c|c}
-\text{Element of } A & \text{Constructor} & \text{Element of } A + B \\ \hline
-\mathsf{red} & \inl & \inl(\mathsf{red}) \\
-\mathsf{green} & \inl & \inl(\mathsf{green}) \\ \hline
-0 & \inr & \inr(0) \\
-1 & \inr & \inr(1)
-\end{array}
+\inferrule*[right=\rulename{\Type\text{-Intro}}]{
+  \Gamma \vdash \ctx
+}{
+  \judg{\Gamma}{\Type_i}{\Type_{i+1}}
+}
+\qquad
+\inferrule*[right=\rulename{\Type\text{-Cumul}}]{
+  \judg{\Gamma}{A}{\Type_i}
+}{
+  \judg{\Gamma}{A}{\Type_{i+1}}
+}
 \]
-In general, every element of \(A + B\) is either of the form
-\(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\). If desired, we can also represent the injections diagrammatically:
-\[
-\begin{tikzcd}
-A \arrow[dr, "\inl"'] & & B \arrow[dl, "\inr"] \\
-& A + B &
-\end{tikzcd}
-\]
-This expresses that both \(A\) and \(B\) “feed into” the coproduct \(A + B\) using the constructors $\inl$ and $\inr$.
 
+\paragraph{Explanation.}
+\begin{itemize}
+  \item The first rule (\rulename{\Type-Intro}) states that each universe \(\Type_i\)
+  itself has a type in the next higher universe \(\Type_{i+1}\).
+  \item The second rule (\rulename{\Type-Cumul}) expresses \emph{cumulativity}:
+  if a type \(A\) belongs to some universe \(\Type_i\), it is also regarded
+  as a type in every higher universe.
+\end{itemize}
+
+\paragraph{Remarks.}
+We set up the rules of the type theory so that whenever a typing judgment
+\(\judg{\Gamma}{a}{A}\) holds, it follows that \(\judg{\Gamma}{A}{\Type_i}\)
+for some universe index \(i\).  
+In other words, every type \(A\) always lives in some universe \(\Type_i\).
+
+Furthermore, judgmental equality preserves typing:  
+if \(\teq{\Gamma}{a}{b}{A}\) then both \(a\) and \(b\) have type \(A\), i.e.
+\[
+\teq{\Gamma}{a}{b}{A} \quad\Rightarrow\quad
+\judg{\Gamma}{a}{A} \;\text{and}\; \judg{\Gamma}{b}{A}.
+\]
+
+% \subsection*{Constructor congruence (example for \(\Pi\)-introduction)}
+
+% Each term-former preserves definitional equality in its arguments. For instance, together with the \(\Pi\)-\emph{intro} rule, we use the following congruence for \(\lambda\)-abstraction:
+% \[
+% \resizebox{\linewidth}{!}{$
+% \inferrule*[right=\rulename{\(\Pi\)-Intro-Eq}]{
+%   \teq{\Gamma}{A}{A'}{\Type_i}
+%   \quad
+%   \teq{\Gamma,\,x\!:\!A}{B}{B'}{\Type_i}
+%   \quad
+%   \teq{\Gamma,\,x\!:\!A}{b}{b'}{B}
+% }{
+%   \teq{\Gamma}{\lambda x.\,b}{\lambda x.\,b'}{\prod_{x:A} B}
+% }
+% $}
+% \]
+% (Analogous congruence rules hold for other constructors; we omit them for brevity.)
+
+
+% \section{Constructors and canonical forms}
+
+% In type theory, each type is defined by specifying its \emph{constructors}—the canonical ways of producing elements (terms) of that type.  
+% Constructors determine how we can \emph{build} terms of a given type, and by extension, how we can reason about or eliminate them. Elimination rules say how to take a value of that type apart (or act on it) to produce something else.
+
+% Formally, for a type \(A : \Type\), a constructor is a term-forming rule of the form
+% \[
+% \frac{\Gamma \vdash t_1 : A_1 \quad \dots \quad \Gamma \vdash t_n : A_n}{\Gamma \vdash c(t_1,\dots,t_n) : A},
+% \]
+% which specifies how a new term \(c(t_1,\dots,t_n)\) of type \(A\) can be formed from existing terms of other types \(A_1,\dots,A_n\).  
+% Each type comes with one or more constructors that uniquely determine its canonical inhabitants.
+
+% \paragraph{Clarifying note.}
+% At this stage, the expression \(c(t_1,\dots,t_n)\) should be understood
+% \emph{purely syntactically}: it describes how to \emph{form} a new term from
+% existing ones using a constructor symbol \(c\) of arity \(n\).
+% The parentheses indicate syntactic application of a constructor to its arguments,
+% not functional application. 
+% We have not yet introduced functions, so \(c(t_1,\dots,t_n)\) does not denote a
+% function being applied to arguments, but simply the construction of a new term
+% according to the formation rule of the type.
+% For example, for a nullary constructor (\(n=0\)) such as the unit value \(\star\),
+% the general rule specializes to
+% \[
+% \frac{}{\,\Gamma \vdash \star : \mathbf{1}\,},
+% \]
+% indicating that \(\star\) is a canonical term of the unit type.
+
+% Syntactically, \(c\) is a \emph{constructor symbol} for the type \(A\), not a previously defined function you prove correct. The rule \emph{declares} that supplying \(n\) arguments of the listed types yields a canonical element of \(A\).
+
+% Just like for function type formation \(A \to B\), this is a \emph{rule of the calculus}: it \emph{licenses} forming \(c(t_1,\dots,t_n)\) once the premises hold. 
+
+% \paragraph{Other examples.}
+
+% \begin{itemize}
+%   \item \textbf{Empty type.}  
+%   The empty type \(\mathbf{0}\) has \emph{no} constructors.  
+%   Therefore, there are no canonical terms \(a : \mathbf{0}\). This make sense, since by definition the empty type is empty.
+
+%   \item \textbf{Sum type.}  
+%   For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+%   \[
+%   \frac{a : A}{\inl(a) : A + B}
+%   \qquad\text{and}\qquad
+%   \frac{b : B}{\inr(b) : A + B}.
+%   \]
+%   The first constructor \(\inl\) injects values from the left component \(A\),
+%   and the second constructor \(\inr\) injects values from the right component \(B\).
+%   As we will see later, these two rules fully describe the canonical forms of elements of \(A + B\).
+  
+%   \textit{Intuition.} Constructors are the primitive building blocks of each type. For instance, every term of \(A + B\) is either constructed as \(\inl(a)\) for some \(a : A\), or as \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type. This property allows us to reason about sum types by \emph{case analysis}, which we will define later.
+% \end{itemize}
+
+\section{Rules associated with a type}
+
+Each type in dependent type theory is characterized by a collection of rules that specify how it can be formed, inhabited, used, and reasoned about:
+
+\begin{itemize}
+  \item \textbf{Formation rule}, stating when the type former can be applied;
+  \item \textbf{Introduction rules}, stating how to inhabit the type;
+  \item \textbf{Elimination rules}, or an induction principle, stating how to use an element of the type;
+  \item \textbf{Computation rules}, which are judgmental equalities explaining what happens when elimination rules are applied to results of introduction rules;
+  \item (optional) \textbf{Uniqueness principles}, which are judgmental equalities explaining how every element of the type is uniquely determined by the results of elimination rules applied to it.
+\end{itemize}
+
+\section{Functions and the arrow type \texorpdfstring{(\(A \to B\))}{(A -> B)}}
+
+A \emph{function} from a type \(A\) to a type \(B\) is a term of the
+\emph{function type} \(A \to B\). Intuitively, a function transforms any input \(a:A\)
+into an output \(b:B\). In type theory, functions are introduced by
+\emph{lambda abstraction} and used by \emph{application}.
+
+\subsection*{Rules for the arrow type}
+
+We present the usual four rules: \emph{formation}, \emph{introduction} (lambda),
+\emph{elimination} (application), and \emph{computation} (\(\beta\)-reduction).
+
+\paragraph{Formation.}
+If \(A\) and \(B\) are types, then \(A \to B\) is a type:
+\[
+\inferrule*[right=\rulename{\(\to\)-Form}]{
+  \judg{\Gamma}{A}{\Type}
+  \quad
+  \judg{\Gamma}{B}{\Type}
+}{
+  \judg{\Gamma}{A \to B}{\Type}
+}
+\]
+
+\paragraph{Introduction (lambda abstraction).}
+If under the assumption \(x:A\) we can build a term \(t:B\), then
+\(\lambda x.\,t\) is a function \(A \to B\):
+\[
+\inferrule*[right=\rulename{\(\to\)-Intro}]{
+  \judg{\Gamma,\,x\!:\!A}{t}{B}
+}{
+  \judg{\Gamma}{\lambda x.\,t}{A \to B}
+}
+\]
+We often write \(\lambda x:A.\,t\) to annotate the parameter type explicitly.
+
+\paragraph{Elimination (application).}
+Given a function \(f:A\to B\) and an argument \(a:A\), we may \emph{apply} \(f\) to \(a\):
+\[
+\inferrule*[right=\rulename{\(\to\)-Elim}]{
+  \judg{\Gamma}{f}{A \to B}
+  \quad
+  \judg{\Gamma}{a}{A}
+}{
+  \judg{\Gamma}{f\,a}{B}
+}
+\]
+
+\paragraph{Computation (\(\beta\)-reduction).}
+Applying a lambda to an argument computes by capture-avoiding substitution:
+\[
+\inferrule*[right=\rulename{\(\to\)-Comp-\(\beta\)}]{
+  \judg{\Gamma,\,x\!:\!A}{t}{B}
+  \quad
+  \judg{\Gamma}{a}{A}
+}{
+  \teq{\Gamma}{(\lambda x.\,t)\,a}{t[a/x]}{B}
+}
+\]
+Here \(t[a/x]\) denotes capture-avoiding substitution of \(a\) for \(x\) in \(t\).
+
+\paragraph{Difference between elimination and computation.}
+It is important to distinguish the \emph{elimination} rule from the \emph{computation} rule.
+
+\begin{itemize}
+  \item \textbf{Elimination rule.}  
+  The elimination rule specifies \emph{how to use} or \emph{consume} a term of a given type.
+  It allows us to produce something else from a value of that type.
+  For function types, the elimination rule is function application:
+  \[
+  \inferrule*[right=\rulename{\(\to\)-Elim}]{
+    \judg{\Gamma}{f}{A \to B}
+    \quad
+    \judg{\Gamma}{a}{A}
+  }{
+    \judg{\Gamma}{f\,a}{B}
+  }
+  \]
+  This rule does not specify what $f\,a$ \emph{evaluates to}; it only states that
+  such a term is well-typed.
+
+  \item \textbf{Computation rule.}  
+  The computation rule (often called the \emph{$\beta$-rule}) specifies
+  \emph{what happens} when an elimination acts on an introduction.
+  It defines how the expression reduces or computes.
+  For function types:
+  \[
+  (\lambda x.\,t)\,a \;\jdeq\; t[a/x].
+  \]
+  That is, applying a function introduced by a $\lambda$-abstraction
+  to an argument $a$ yields the function body with $a$ substituted for $x$.
+
+\end{itemize}
+
+Elimination rules describe \emph{how we may use} a term of a type,
+while computation rules describe \emph{what happens when we use it}.
+In the case of functions, elimination is application,
+and computation expresses how application and $\lambda$-abstraction interact:
+\[
+\text{Introduction (}\lambda\text{)} \;+\; \text{Elimination (application)} \;\Rightarrow\; \text{Computation (}\beta\text{)}.
+\]
+
+\subsection*{Examples}
+
+\paragraph{Identity and constant functions.}
+\[
+\mathsf{id}_A \;\defeq\; \lambda x\!:\!A.\,x \;:\; A \to A,
+\qquad
+\mathsf{const}_{A,B}(a) \;\defeq\; \lambda \_:\!B.\,a \;:\; B \to A.
+\]
+The identity can be computed as \(\mathsf{id}_A\,a \jdeq a\).
+
+\paragraph{Conditional function.}
+We define the higher-order conditional operator
+\[
+\mathsf{if}_A
+\;\defeq\;
+(\lambda b\!:\!\Bool.\,
+  (\lambda t\!:\!A.\,
+    (\lambda f\!:\!A.\;
+      \caseof(b,\; \lambda\_.\,t,\; \lambda\_.\,f))))
+\;:\;
+\Bool \to (A \to (A \to A)).
+\]
+That is, \(\mathsf{if}_A\) is a curried function taking three arguments:
+a boolean \(b:\Bool\), and two values \(t,f:A\).
+Its behavior is given by
+\[
+\mathsf{if}_A \; b \; t \; f
+\;\defeq\;
+\caseof(b,\; \lambda\_.\,t,\; \lambda\_.\,f),
+\]
+so that
+\[
+\mathsf{if}_A \; \mathsf{true} \; t \; f \;\jdeq\; t,
+\qquad
+\mathsf{if}_A \; \mathsf{false} \;t \; f \;\jdeq\; f.
+\]
+
+
+\paragraph{Composition.}
+Given \(f:B\to C\) and \(g:A\to B\), define
+\[
+f \circ g \;\defeq\; \lambda x\!:\!A.\, f\,(g\,x) \;:\; A \to C.
+\]
+
+\subsection*{Typing derivations (worked micro-examples)}
+
+Assume \(\emptyctx \vdash A:\Type\) and \(\emptyctx \vdash B:\Type\).
+\[
+\resizebox{\linewidth}{!}{$
+\inferrule*[right=\rulename{\(\to\)-Intro}]{
+  \inferrule*[right=\rulename{Var}]{
+    x\!:\!A \vdash \ctx \quad (x\!:\!A)\in (x\!:\!A)
+  }{
+    \judg{x\!:\!A}{x}{A}
+  }
+}{
+  \judg{\emptyctx}{\lambda x\!:\!A.\,x}{A \to A}
+}
+\qquad
+\inferrule*[right=\rulename{\(\to\)-Elim}]{
+  \judg{\emptyctx}{\lambda x\!:\!A.\,x}{A \to A}
+  \quad
+  \judg{\emptyctx}{a}{A}
+}{
+  \judg{\emptyctx}{(\lambda x.\,x)\,a}{A}
+}
+$}
+\]
+By \(\beta\), \((\lambda x.\,x)\,a \jdeq a\).
+
+
+% \section{Sum types and the \texorpdfstring{$\mathsf{inl}$}{inl} and \texorpdfstring{$\mathsf{inr}$}{inr} constructors}
+
+% Given two types \(A : \Type\) and \(B : \Type\), their \emph{sum type}
+% is written
+% \[
+% A + B : \Type.
+% \]
+% % A term of type \(A + B\) is either a term of \(A\) or a term of \(B\).
+% But how is $A + B$ constructed? We first need to introduce the constructors of the type $A+B$. For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+% \[
+% \frac{a : A}{\inl(a) : A + B}
+% \qquad\text{and}\qquad
+% \frac{b : B}{\inr(b) : A + B}.
+% \]
+% The first constructor \(\inl\) injects values into $A+B$ from the left component \(A\), and the second constructor \(\inr\) injects values into $A+B$ from the right component \(B\). These two rules fully describe the canonical forms of elements of \(A + B\).
+
+% \paragraph{Intuition.}
+% Constructors are the primitive building blocks of each type.  
+% For instance, every term of \(A + B\) is either \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.
+
+% \paragraph{Reminder.} At this stage, the expression \(\inl\) should be understood \emph{purely syntactically}: it describes how to \emph{form} a new term from existing ones using a constructor symbol \( \inl \). The parentheses indicate syntactic application of a constructor to its arguments, not functional application. We have not yet introduced functions, so \( \inl \) does not denote a function being applied to arguments, but simply the construction of a new term according to the formation rule of the type.
+
+% \paragraph{Example: How \(A + B\) looks like?}
+
+% To make the idea of a sum type concrete, let us take two small finite types:
+% \[
+% A \defeq \{\mathsf{red},\, \mathsf{green}\}, 
+% \qquad
+% B \defeq \{0,\,1\}.
+% \]
+% Then the sum type \(A + B\) consists of all elements of \(A\) tagged by \(\inl\),
+% and all elements of \(B\) tagged by \(\inr\):
+% \[
+% A + B \;=\;
+% \{\inl(\mathsf{red}),\; \inl(\mathsf{green}),\;
+%   \inr(0),\; \inr(1)\}.
+% \]
+% Intuitively, \(\inl(a)\) means “a value coming from \(A\), left side of the sum,” and
+% \(\inr(b)\) means “a value coming from \(B\), right side of the sum.”. 
+
+% \bigskip
+% \noindent
+% This can be illustrated in tabular form:
+
+% \[
+% \begin{array}{c|c|c}
+% \text{Element of } A & \text{Constructor} & \text{Element of } A + B \\ \hline
+% \mathsf{red} & \inl & \inl(\mathsf{red}) \\
+% \mathsf{green} & \inl & \inl(\mathsf{green}) \\ \hline
+% 0 & \inr & \inr(0) \\
+% 1 & \inr & \inr(1)
+% \end{array}
+% \]
+% In general, every element of \(A + B\) is either of the form
+% \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\). If desired, we can also represent the injections diagrammatically:
+% \[
+% \begin{tikzcd}
+% A \arrow[dr, "\inl"'] & & B \arrow[dl, "\inr"] \\
+% & A + B &
+% \end{tikzcd}
+% \]
+% This expresses that both \(A\) and \(B\) “feed into” the coproduct \(A + B\) using the constructors $\inl$ and $\inr$.
+
+% \medskip
+% \noindent\textbf{Rules for the sum type \(A + B\).}
+
+% \medskip
+% \noindent
+% \emph{Formation.}
+% \[
+% \inferrule*[right=\rulename{Form}]{
+%   \judg{\Gamma}{A}{\Type}
+%   \quad
+%   \judg{\Gamma}{B}{\Type}
+% }{
+%   \judg{\Gamma}{A + B}{\Type}
+% }
+% \]
+
+% \medskip
+% \noindent
+% \emph{Introduction.}
+% \[
+% \inferrule*[right=\rulename{IntroL}]{
+%   \judg{\Gamma}{a}{A}
+% }{
+%   \judg{\Gamma}{\inl(a)}{A + B}
+% }
+% \qquad
+% \inferrule*[right=\rulename{IntroR}]{
+%   \judg{\Gamma}{b}{B}
+% }{
+%   \judg{\Gamma}{\inr(b)}{A + B}
+% }
+% \]
+
+% \medskip
+% \noindent
+% \emph{Elimination (case analysis).}
+% \[
+% \inferrule*[right=\rulename{Elim}]{
+%   \judg{\Gamma}{s}{A + B}
+%   \quad
+%   \judg{\Gamma}{f}{A \to C}
+%   \quad
+%   \judg{\Gamma}{g}{B \to C}
+% }{
+%   \judg{\Gamma}{\caseof(s,\,f,\,g)}{C}
+% }
+% \]
+
+% \medskip
+% \noindent
+% \emph{Computation.}
+% \[
+% \teq{\Gamma}{\caseof(\inl(a),\,f,\,g)}{f\,a}{C}
+% \qquad\qquad
+% \teq{\Gamma}{\caseof(\inr(b),\,f,\,g)}{g\,b}{C}
+% \]
+
+% \section{Product types and the \texorpdfstring{$\mathsf{pair}$}{pair} constructor}
+
+% \subsection*{Definition of the product type}
+
+% Given two types \(A : \Type\) and \(B : \Type\), their \emph{product type} is written
+% \[
+% A \times B : \Type.
+% \]
+% A term of type \(A \times B\) represents a \emph{pair} consisting of one element from \(A\) and one element from \(B\).  
+% In other words, it corresponds to “both an \(A\) and a \(B\) together.”
+
+% \paragraph{Constructors.}
+% The canonical way to construct a term of the product type is by using the pairing constructor:
+% \[
+% \frac{a : A \quad b : B}{(a, b) : A \times B}.
+% \]
+% Thus, for any \(a : A\) and \(b : B\), the ordered pair \((a, b)\) is a term of \(A \times B\).
+
+% \paragraph{Eliminators (projections).}
+% Given a term \(p : A \times B\), we can \emph{eliminate} it by projecting its components:
+% \[
+% \frac{p : A \times B}{\pi_1(p) : A}
+% \qquad\text{and}\qquad
+% \frac{p : A \times B}{\pi_2(p) : B}.
+% \]
+% Intuitively, \(\pi_1\) extracts the first component and \(\pi_2\) extracts the second component of the pair.
+
+% \paragraph{Computation rules.}
+% The product type satisfies the following definitional equalities:
+% \[
+% \pi_1(a,b) \jdeq a, \qquad \pi_2(a,b) \jdeq b.
+% \]
+% That is, projecting a pair retrieves its components directly.
+
+% \paragraph{Intuition.}
+% If sum types \(A + B\) represent “either an \(A\) or a \(B\),”  
+% then product types \(A \times B\) represent “both an \(A\) and a \(B\).”  
+% For example, if \(A\) is the type of names and \(B\) is the type of ages,  
+% then \(A \times B\) is the type of \emph{name–age pairs}.
+
+% \paragraph{Example.}
+% Let
+% \[
+% A \defeq \{\mathsf{red},\, \mathsf{green}\}, \qquad
+% B \defeq \{0,\, 1\}.
+% \]
+% Then the product type \(A \times B\) consists of all possible ordered pairs:
+% \[
+% A \times B \;=\;
+% \{(\mathsf{red},0),\; (\mathsf{red},1),\; (\mathsf{green},0),\; (\mathsf{green},1)\}.
+% \]
+
+% \bigskip
+% \noindent
+% This can be visualized in a grid form:
+% \[
+% \begin{array}{c|cc}
+% \times & 0 & 1 \\ \hline
+% \mathsf{red} & (\mathsf{red},0) & (\mathsf{red},1) \\
+% \mathsf{green} & (\mathsf{green},0) & (\mathsf{green},1)
+% \end{array}
+% \]
+% Every element of \(A \times B\) is one of these four pairs.
+
+% \paragraph{Diagrammatic intuition.}
+% \[
+% \begin{tikzcd}
+% & A \times B \arrow[dl, "\pi_1"'] \arrow[dr, "\pi_2"] & \\
+% A & & B
+% \end{tikzcd}
+% \]
+% This expresses that the product type \(A \times B\) can be projected back to its two components via the maps \(\pi_1\) and \(\pi_2\).
+
+% \paragraph{Summary.}
+% The product type represents simultaneous possession of two pieces of data, and its rules can be summarized as:
+% \[
+% \begin{aligned}
+% &\textbf{Formation:} && A,B:\Type \;\Rightarrow\; A\times B:\Type,\\
+% &\textbf{Introduction:} && a:A,\, b:B \;\Rightarrow\; (a,b):A\times B,\\
+% &\textbf{Elimination:} && p:A\times B \;\Rightarrow\; \pi_1(p):A,\, \pi_2(p):B,\\
+% &\textbf{Computation:} && \pi_1(a,b)\jdeq a,\, \pi_2(a,b)\jdeq b.
+% \end{aligned}
+% \]
+% These four rules together fully characterize the meaning of the product type \(A \times B\).
+
+% \section{Dependent product types}
+
+% Alright, now this is where it starts to get interesting. In the ordinary product \(A \times B\), a term carries \emph{both} an \(A\) and a \(B\) at once. A common situation, however, is that the second type \(B\) may \emph{depend} on the first type \(A\). This is similar to a function, but we will return to that later. For now, I will avoid using function terminology. Given a type \(A:\Type\) and a family of types \(B(x):\Type\) indexed by \(x:A\),
+% the \emph{dependent product} (also called the \emph{Pi type})
+% \[
+% \prod_{x:A} B(x) : \Type
+% \]
+% collects functions that, for each input \(a:A\), return an output in the \emph{matching} type \(B(a)\).
+
+% \paragraph{Example: explicitly populated \(A\) and \(B\).} Let us take \(A \defeq \Bool\) and define a family of types \(B(x)\) that
+% depends on the boolean \(x\):
+% \[
+% B(x) \defeq
+% \begin{cases}
+%   \Nat & \text{if } x = \mathsf{true},\\
+%   \String & \text{if } x = \mathsf{false}.
+% \end{cases}
+% \]
+% We can “unroll’’ the dependent product by considering one case for each value:
+% \[
+% \prod_{x:\Bool} B(x)
+% \;\;\jdeq\;\;
+% B(\mathsf{true}) \times B(\mathsf{false})
+% \;\;\jdeq\;\;
+% \Nat \times \String.
+% \]
+% This example instance shows that
+% \[
+% \prod_{x:\Bool} B(x)
+% \]
+% acts like a “heterogeneous product’’ of the component types
+% \(B(\mathsf{true})\) and \(B(\mathsf{false})\):
+% each term of \(A\) (here each boolean) chooses its own type.
+
+% \subsection*{Formation Rule}
+
+% If \(A\) is a type, and \(B(x)\) is a type for each \(x:A\), then the dependent product is a type:
+% \[
+% \inferrule*[right=\rulename{\(\Pi\)-Form}]{
+%   \judg{\Gamma}{A}{\Type}
+%   \quad
+%   \judg{\Gamma,\,x:A}{B(x)}{\Type}
+% }{
+%   \judg{\Gamma}{\prod_{x:A} B(x)}{\Type}
+% }
+% \]
+
+% \subsection*{Connection to the arrow type}
+
+% The arrow type is a special case of the dependent product (\emph{Pi}) type:
+% if \(B\) does not depend on \(x:A\), then
+% \[
+% \prod_{x:A} B \;\jdeq\; A \to B.
+% \]
+% Thus, \(\lambda\)-abstraction and application are the non-dependent instances of
+% the \(\Pi\)-introduction and \(\Pi\)-elimination rules you will see next.
 
 \end{document}
