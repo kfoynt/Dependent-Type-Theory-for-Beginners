@@ -1216,152 +1216,126 @@ Given \(f:B\to C\) and \(g:A\to B\), define
 f \circ g \;\defeq\; \lambda x\!:\!A.\, f\,(g\,x) \;:\; A \to C.
 \]
 
-\subsection*{Typing derivations (worked micro-examples)}
 
-Assume \(\emptyctx \vdash A:\Type\) and \(\emptyctx \vdash B:\Type\).
+\section{Sum types and the \texorpdfstring{$\mathsf{inl}$}{inl} and \texorpdfstring{$\mathsf{inr}$}{inr} constructors}
+
+Given two types \(A : \Type\) and \(B : \Type\), their \emph{sum type}
+is written
 \[
-\resizebox{\linewidth}{!}{$
-\inferrule*[right=\rulename{\(\to\)-Intro}]{
-  \inferrule*[right=\rulename{Var}]{
-    x\!:\!A \vdash \ctx \quad (x\!:\!A)\in (x\!:\!A)
-  }{
-    \judg{x\!:\!A}{x}{A}
-  }
+A + B : \Type.
+\]
+% A term of type \(A + B\) is either a term of \(A\) or a term of \(B\).
+But how is $A + B$ constructed? We first need to introduce the constructors of the type $A+B$. For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+\[
+\frac{a : A}{\inl(a) : A + B}
+\qquad\text{and}\qquad
+\frac{b : B}{\inr(b) : A + B}.
+\]
+The first constructor \(\inl\) injects values into $A+B$ from the left component \(A\), and the second constructor \(\inr\) injects values into $A+B$ from the right component \(B\). These two rules fully describe the canonical forms of elements of \(A + B\).
+
+\paragraph{Intuition.}
+Constructors are the primitive building blocks of each type.  
+For instance, every term of \(A + B\) is either \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.
+
+\paragraph{Reminder.} At this stage, the expression \(\inl\) should be understood \emph{purely syntactically}: it describes how to \emph{form} a new term from existing ones using a constructor symbol \( \inl \). The parentheses indicate syntactic application of a constructor to its arguments, not functional application. We have not yet introduced functions, so \( \inl \) does not denote a function being applied to arguments, but simply the construction of a new term according to the formation rule of the type.
+
+\paragraph{Example: How \(A + B\) looks like?}
+
+To make the idea of a sum type concrete, let us take two small finite types:
+\[
+A \defeq \{\mathsf{red},\, \mathsf{green}\}, 
+\qquad
+B \defeq \{0,\,1\}.
+\]
+Then the sum type \(A + B\) consists of all elements of \(A\) tagged by \(\inl\),
+and all elements of \(B\) tagged by \(\inr\):
+\[
+A + B \;=\;
+\{\inl(\mathsf{red}),\; \inl(\mathsf{green}),\;
+  \inr(0),\; \inr(1)\}.
+\]
+Intuitively, \(\inl(a)\) means “a value coming from \(A\), left side of the sum,” and
+\(\inr(b)\) means “a value coming from \(B\), right side of the sum.”. 
+
+\bigskip
+\noindent
+This can be illustrated in tabular form:
+
+\[
+\begin{array}{c|c|c}
+\text{Element of } A & \text{Constructor} & \text{Element of } A + B \\ \hline
+\mathsf{red} & \inl & \inl(\mathsf{red}) \\
+\mathsf{green} & \inl & \inl(\mathsf{green}) \\ \hline
+0 & \inr & \inr(0) \\
+1 & \inr & \inr(1)
+\end{array}
+\]
+In general, every element of \(A + B\) is either of the form
+\(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\). If desired, we can also represent the injections diagrammatically:
+\[
+\begin{tikzcd}
+A \arrow[dr, "\inl"'] & & B \arrow[dl, "\inr"] \\
+& A + B &
+\end{tikzcd}
+\]
+This expresses that both \(A\) and \(B\) “feed into” the coproduct \(A + B\) using the constructors $\inl$ and $\inr$.
+
+\medskip
+\noindent\textbf{Rules for the sum type \(A + B\).}
+
+\medskip
+\noindent
+\emph{Formation.}
+\[
+\inferrule*[right=\rulename{Form}]{
+  \judg{\Gamma}{A}{\Type}
+  \quad
+  \judg{\Gamma}{B}{\Type}
 }{
-  \judg{\emptyctx}{\lambda x\!:\!A.\,x}{A \to A}
+  \judg{\Gamma}{A + B}{\Type}
+}
+\]
+
+\medskip
+\noindent
+\emph{Introduction.}
+\[
+\inferrule*[right=\rulename{IntroL}]{
+  \judg{\Gamma}{a}{A}
+}{
+  \judg{\Gamma}{\inl(a)}{A + B}
 }
 \qquad
-\inferrule*[right=\rulename{\(\to\)-Elim}]{
-  \judg{\emptyctx}{\lambda x\!:\!A.\,x}{A \to A}
-  \quad
-  \judg{\emptyctx}{a}{A}
+\inferrule*[right=\rulename{IntroR}]{
+  \judg{\Gamma}{b}{B}
 }{
-  \judg{\emptyctx}{(\lambda x.\,x)\,a}{A}
+  \judg{\Gamma}{\inr(b)}{A + B}
 }
-$}
 \]
-By \(\beta\), \((\lambda x.\,x)\,a \jdeq a\).
 
+\medskip
+\noindent
+\emph{Elimination (case analysis).}
+\[
+\inferrule*[right=\rulename{Elim}]{
+  \judg{\Gamma}{s}{A + B}
+  \quad
+  \judg{\Gamma}{f}{A \to C}
+  \quad
+  \judg{\Gamma}{g}{B \to C}
+}{
+  \judg{\Gamma}{\caseof(s,\,f,\,g)}{C}
+}
+\]
 
-% \section{Sum types and the \texorpdfstring{$\mathsf{inl}$}{inl} and \texorpdfstring{$\mathsf{inr}$}{inr} constructors}
-
-% Given two types \(A : \Type\) and \(B : \Type\), their \emph{sum type}
-% is written
-% \[
-% A + B : \Type.
-% \]
-% % A term of type \(A + B\) is either a term of \(A\) or a term of \(B\).
-% But how is $A + B$ constructed? We first need to introduce the constructors of the type $A+B$. For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
-% \[
-% \frac{a : A}{\inl(a) : A + B}
-% \qquad\text{and}\qquad
-% \frac{b : B}{\inr(b) : A + B}.
-% \]
-% The first constructor \(\inl\) injects values into $A+B$ from the left component \(A\), and the second constructor \(\inr\) injects values into $A+B$ from the right component \(B\). These two rules fully describe the canonical forms of elements of \(A + B\).
-
-% \paragraph{Intuition.}
-% Constructors are the primitive building blocks of each type.  
-% For instance, every term of \(A + B\) is either \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.
-
-% \paragraph{Reminder.} At this stage, the expression \(\inl\) should be understood \emph{purely syntactically}: it describes how to \emph{form} a new term from existing ones using a constructor symbol \( \inl \). The parentheses indicate syntactic application of a constructor to its arguments, not functional application. We have not yet introduced functions, so \( \inl \) does not denote a function being applied to arguments, but simply the construction of a new term according to the formation rule of the type.
-
-% \paragraph{Example: How \(A + B\) looks like?}
-
-% To make the idea of a sum type concrete, let us take two small finite types:
-% \[
-% A \defeq \{\mathsf{red},\, \mathsf{green}\}, 
-% \qquad
-% B \defeq \{0,\,1\}.
-% \]
-% Then the sum type \(A + B\) consists of all elements of \(A\) tagged by \(\inl\),
-% and all elements of \(B\) tagged by \(\inr\):
-% \[
-% A + B \;=\;
-% \{\inl(\mathsf{red}),\; \inl(\mathsf{green}),\;
-%   \inr(0),\; \inr(1)\}.
-% \]
-% Intuitively, \(\inl(a)\) means “a value coming from \(A\), left side of the sum,” and
-% \(\inr(b)\) means “a value coming from \(B\), right side of the sum.”. 
-
-% \bigskip
-% \noindent
-% This can be illustrated in tabular form:
-
-% \[
-% \begin{array}{c|c|c}
-% \text{Element of } A & \text{Constructor} & \text{Element of } A + B \\ \hline
-% \mathsf{red} & \inl & \inl(\mathsf{red}) \\
-% \mathsf{green} & \inl & \inl(\mathsf{green}) \\ \hline
-% 0 & \inr & \inr(0) \\
-% 1 & \inr & \inr(1)
-% \end{array}
-% \]
-% In general, every element of \(A + B\) is either of the form
-% \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\). If desired, we can also represent the injections diagrammatically:
-% \[
-% \begin{tikzcd}
-% A \arrow[dr, "\inl"'] & & B \arrow[dl, "\inr"] \\
-% & A + B &
-% \end{tikzcd}
-% \]
-% This expresses that both \(A\) and \(B\) “feed into” the coproduct \(A + B\) using the constructors $\inl$ and $\inr$.
-
-% \medskip
-% \noindent\textbf{Rules for the sum type \(A + B\).}
-
-% \medskip
-% \noindent
-% \emph{Formation.}
-% \[
-% \inferrule*[right=\rulename{Form}]{
-%   \judg{\Gamma}{A}{\Type}
-%   \quad
-%   \judg{\Gamma}{B}{\Type}
-% }{
-%   \judg{\Gamma}{A + B}{\Type}
-% }
-% \]
-
-% \medskip
-% \noindent
-% \emph{Introduction.}
-% \[
-% \inferrule*[right=\rulename{IntroL}]{
-%   \judg{\Gamma}{a}{A}
-% }{
-%   \judg{\Gamma}{\inl(a)}{A + B}
-% }
-% \qquad
-% \inferrule*[right=\rulename{IntroR}]{
-%   \judg{\Gamma}{b}{B}
-% }{
-%   \judg{\Gamma}{\inr(b)}{A + B}
-% }
-% \]
-
-% \medskip
-% \noindent
-% \emph{Elimination (case analysis).}
-% \[
-% \inferrule*[right=\rulename{Elim}]{
-%   \judg{\Gamma}{s}{A + B}
-%   \quad
-%   \judg{\Gamma}{f}{A \to C}
-%   \quad
-%   \judg{\Gamma}{g}{B \to C}
-% }{
-%   \judg{\Gamma}{\caseof(s,\,f,\,g)}{C}
-% }
-% \]
-
-% \medskip
-% \noindent
-% \emph{Computation.}
-% \[
-% \teq{\Gamma}{\caseof(\inl(a),\,f,\,g)}{f\,a}{C}
-% \qquad\qquad
-% \teq{\Gamma}{\caseof(\inr(b),\,f,\,g)}{g\,b}{C}
-% \]
+\medskip
+\noindent
+\emph{Computation.}
+\[
+\teq{\Gamma}{\caseof(\inl(a),\,f,\,g)}{f\,a}{C}
+\qquad\qquad
+\teq{\Gamma}{\caseof(\inr(b),\,f,\,g)}{g\,b}{C}
+\]
 
 % \section{Product types and the \texorpdfstring{$\mathsf{pair}$}{pair} constructor}
 
