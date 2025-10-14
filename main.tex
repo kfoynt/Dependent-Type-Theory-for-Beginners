@@ -1344,90 +1344,129 @@ g & \text{if } s = \mathsf{false}.
 \teq{\Gamma}{\caseof(\inr(b),\,f,\,g)}{g\,b}{C}
 \]
 
-% \section{Product types and the \texorpdfstring{$\mathsf{pair}$}{pair} constructor}
+\section{Product types and the \texorpdfstring{$\mathsf{pair}$}{pair} constructor}
 
-% \subsection*{Definition of the product type}
+\subsection*{Definition of the product type}
 
-% Given two types \(A : \Type\) and \(B : \Type\), their \emph{product type} is written
-% \[
-% A \times B : \Type.
-% \]
-% A term of type \(A \times B\) represents a \emph{pair} consisting of one element from \(A\) and one element from \(B\).  
-% In other words, it corresponds to “both an \(A\) and a \(B\) together.”
+Given two types \(A : \Type\) and \(B : \Type\), their \emph{product type} is written
+\[
+A \times B : \Type.
+\]
+A term of type \(A \times B\) represents a \emph{pair} consisting of one element from \(A\) and one element from \(B\).  
+In other words, it corresponds to “both an \(A\) and a \(B\) together.”
 
-% \paragraph{Constructors.}
-% The canonical way to construct a term of the product type is by using the pairing constructor:
-% \[
-% \frac{a : A \quad b : B}{(a, b) : A \times B}.
-% \]
-% Thus, for any \(a : A\) and \(b : B\), the ordered pair \((a, b)\) is a term of \(A \times B\).
+\paragraph{Constructors.}
+The canonical way to construct a term of the product type is by using the pairing constructor:
+\[
+\frac{a : A \quad b : B}{(a, b) : A \times B}.
+\]
+Thus, for any \(a : A\) and \(b : B\), the ordered pair \((a, b)\) is a term of \(A \times B\).
 
-% \paragraph{Eliminators (projections).}
-% Given a term \(p : A \times B\), we can \emph{eliminate} it by projecting its components:
-% \[
-% \frac{p : A \times B}{\pi_1(p) : A}
-% \qquad\text{and}\qquad
-% \frac{p : A \times B}{\pi_2(p) : B}.
-% \]
-% Intuitively, \(\pi_1\) extracts the first component and \(\pi_2\) extracts the second component of the pair.
+\paragraph{Eliminators (projections).}
+Given a term \(p : A \times B\), we can \emph{eliminate} it by projecting its components:
+\[
+\frac{p : A \times B}{\pi_1(p) : A}
+\qquad\text{and}\qquad
+\frac{p : A \times B}{\pi_2(p) : B}.
+\]
+Intuitively, \(\pi_1\) extracts the first component and \(\pi_2\) extracts the second component of the pair.
 
-% \paragraph{Computation rules.}
-% The product type satisfies the following definitional equalities:
-% \[
-% \pi_1(a,b) \jdeq a, \qquad \pi_2(a,b) \jdeq b.
-% \]
-% That is, projecting a pair retrieves its components directly.
+\paragraph{Computation rules.}
+The product type satisfies the following definitional equalities:
+\[
+\pi_1(a,b) \jdeq a, \qquad \pi_2(a,b) \jdeq b.
+\]
+That is, projecting a pair retrieves its components directly.
 
-% \paragraph{Intuition.}
-% If sum types \(A + B\) represent “either an \(A\) or a \(B\),”  
-% then product types \(A \times B\) represent “both an \(A\) and a \(B\).”  
-% For example, if \(A\) is the type of names and \(B\) is the type of ages,  
-% then \(A \times B\) is the type of \emph{name–age pairs}.
+\paragraph{Intuition.}
+If sum types \(A + B\) represent “either an \(A\) or a \(B\),”  
+then product types \(A \times B\) represent “both an \(A\) and a \(B\).”  
+For example, if \(A\) is the type of names and \(B\) is the type of ages,  
+then \(A \times B\) is the type of \emph{name–age pairs}.
 
-% \paragraph{Example.}
-% Let
-% \[
-% A \defeq \{\mathsf{red},\, \mathsf{green}\}, \qquad
-% B \defeq \{0,\, 1\}.
-% \]
-% Then the product type \(A \times B\) consists of all possible ordered pairs:
-% \[
-% A \times B \;=\;
-% \{(\mathsf{red},0),\; (\mathsf{red},1),\; (\mathsf{green},0),\; (\mathsf{green},1)\}.
-% \]
+\paragraph{Example.}
+Let
+\[
+A \defeq \{\mathsf{red},\, \mathsf{green}\}, \qquad
+B \defeq \{0,\, 1\}.
+\]
+Then the product type \(A \times B\) consists of all possible ordered pairs:
+\[
+A \times B \;=\;
+\{(\mathsf{red},0),\; (\mathsf{red},1),\; (\mathsf{green},0),\; (\mathsf{green},1)\}.
+\]
 
-% \bigskip
-% \noindent
-% This can be visualized in a grid form:
-% \[
-% \begin{array}{c|cc}
-% \times & 0 & 1 \\ \hline
-% \mathsf{red} & (\mathsf{red},0) & (\mathsf{red},1) \\
-% \mathsf{green} & (\mathsf{green},0) & (\mathsf{green},1)
-% \end{array}
-% \]
-% Every element of \(A \times B\) is one of these four pairs.
+\bigskip
+\noindent
+This can be visualized in a grid form:
+\[
+\begin{array}{c|cc}
+\times & 0 & 1 \\ \hline
+\mathsf{red} & (\mathsf{red},0) & (\mathsf{red},1) \\
+\mathsf{green} & (\mathsf{green},0) & (\mathsf{green},1)
+\end{array}
+\]
+Every element of \(A \times B\) is one of these four pairs.
 
-% \paragraph{Diagrammatic intuition.}
-% \[
-% \begin{tikzcd}
-% & A \times B \arrow[dl, "\pi_1"'] \arrow[dr, "\pi_2"] & \\
-% A & & B
-% \end{tikzcd}
-% \]
-% This expresses that the product type \(A \times B\) can be projected back to its two components via the maps \(\pi_1\) and \(\pi_2\).
+\paragraph{Diagrammatic intuition.}
+\[
+\begin{tikzcd}
+& A \times B \arrow[dl, "\pi_1"'] \arrow[dr, "\pi_2"] & \\
+A & & B
+\end{tikzcd}
+\]
+This expresses that the product type \(A \times B\) can be projected back to its two components via the maps \(\pi_1\) and \(\pi_2\).
 
-% \paragraph{Summary.}
-% The product type represents simultaneous possession of two pieces of data, and its rules can be summarized as:
-% \[
-% \begin{aligned}
-% &\textbf{Formation:} && A,B:\Type \;\Rightarrow\; A\times B:\Type,\\
-% &\textbf{Introduction:} && a:A,\, b:B \;\Rightarrow\; (a,b):A\times B,\\
-% &\textbf{Elimination:} && p:A\times B \;\Rightarrow\; \pi_1(p):A,\, \pi_2(p):B,\\
-% &\textbf{Computation:} && \pi_1(a,b)\jdeq a,\, \pi_2(a,b)\jdeq b.
-% \end{aligned}
-% \]
-% These four rules together fully characterize the meaning of the product type \(A \times B\).
+\subsection*{Rules for the non-dependent product \(A \times B\)}
+
+We record the standard \emph{formation}, \emph{introduction} (pairing),
+\emph{elimination} (projections), and \emph{computation} rules for the
+non-dependent product.
+
+\paragraph{Formation.}
+\[
+\inferrule*[right=\rulename{\(\times\)-Form}]{
+  \judg{\Gamma}{A}{\Type}
+  \quad
+  \judg{\Gamma}{B}{\Type}
+}{
+  \judg{\Gamma}{A \times B}{\Type}
+}
+\]
+
+\paragraph{Introduction (pairing).}
+\[
+\inferrule*[right=\rulename{\(\times\)-Intro}]{
+  \judg{\Gamma}{a}{A}
+  \quad
+  \judg{\Gamma}{b}{B}
+}{
+  \judg{\Gamma}{(a,b)}{A \times B}
+}
+\]
+
+\paragraph{Elimination (projections).}
+\[
+\inferrule*[right=\rulename{\(\times\)-Elim\(_1\)}]{
+  \judg{\Gamma}{p}{A \times B}
+}{
+  \judg{\Gamma}{\pi_1(p)}{A}
+}
+\qquad
+\inferrule*[right=\rulename{\(\times\)-Elim\(_2\)}]{
+  \judg{\Gamma}{p}{A \times B}
+}{
+  \judg{\Gamma}{\pi_2(p)}{B}
+}
+\]
+
+\paragraph{Computation (\(\beta\)-rules for projections).}
+\[
+\teq{\Gamma}{\pi_1(a,b)}{a}{A}
+\qquad\qquad
+\teq{\Gamma}{\pi_2(a,b)}{b}{B}
+\]
+These specify that projecting a canonical pair returns its components.
 
 % \section{Dependent product types}
 
