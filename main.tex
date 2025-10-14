@@ -1006,60 +1006,6 @@ if \(\teq{\Gamma}{a}{b}{A}\) then both \(a\) and \(b\) have type \(A\), i.e.
 % \]
 % (Analogous congruence rules hold for other constructors; we omit them for brevity.)
 
-
-% \section{Constructors and canonical forms}
-
-% In type theory, each type is defined by specifying its \emph{constructors}—the canonical ways of producing elements (terms) of that type.  
-% Constructors determine how we can \emph{build} terms of a given type, and by extension, how we can reason about or eliminate them. Elimination rules say how to take a value of that type apart (or act on it) to produce something else.
-
-% Formally, for a type \(A : \Type\), a constructor is a term-forming rule of the form
-% \[
-% \frac{\Gamma \vdash t_1 : A_1 \quad \dots \quad \Gamma \vdash t_n : A_n}{\Gamma \vdash c(t_1,\dots,t_n) : A},
-% \]
-% which specifies how a new term \(c(t_1,\dots,t_n)\) of type \(A\) can be formed from existing terms of other types \(A_1,\dots,A_n\).  
-% Each type comes with one or more constructors that uniquely determine its canonical inhabitants.
-
-% \paragraph{Clarifying note.}
-% At this stage, the expression \(c(t_1,\dots,t_n)\) should be understood
-% \emph{purely syntactically}: it describes how to \emph{form} a new term from
-% existing ones using a constructor symbol \(c\) of arity \(n\).
-% The parentheses indicate syntactic application of a constructor to its arguments,
-% not functional application. 
-% We have not yet introduced functions, so \(c(t_1,\dots,t_n)\) does not denote a
-% function being applied to arguments, but simply the construction of a new term
-% according to the formation rule of the type.
-% For example, for a nullary constructor (\(n=0\)) such as the unit value \(\star\),
-% the general rule specializes to
-% \[
-% \frac{}{\,\Gamma \vdash \star : \mathbf{1}\,},
-% \]
-% indicating that \(\star\) is a canonical term of the unit type.
-
-% Syntactically, \(c\) is a \emph{constructor symbol} for the type \(A\), not a previously defined function you prove correct. The rule \emph{declares} that supplying \(n\) arguments of the listed types yields a canonical element of \(A\).
-
-% Just like for function type formation \(A \to B\), this is a \emph{rule of the calculus}: it \emph{licenses} forming \(c(t_1,\dots,t_n)\) once the premises hold. 
-
-% \paragraph{Other examples.}
-
-% \begin{itemize}
-%   \item \textbf{Empty type.}  
-%   The empty type \(\mathbf{0}\) has \emph{no} constructors.  
-%   Therefore, there are no canonical terms \(a : \mathbf{0}\). This make sense, since by definition the empty type is empty.
-
-%   \item \textbf{Sum type.}  
-%   For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
-%   \[
-%   \frac{a : A}{\inl(a) : A + B}
-%   \qquad\text{and}\qquad
-%   \frac{b : B}{\inr(b) : A + B}.
-%   \]
-%   The first constructor \(\inl\) injects values from the left component \(A\),
-%   and the second constructor \(\inr\) injects values from the right component \(B\).
-%   As we will see later, these two rules fully describe the canonical forms of elements of \(A + B\).
-  
-%   \textit{Intuition.} Constructors are the primitive building blocks of each type. For instance, every term of \(A + B\) is either constructed as \(\inl(a)\) for some \(a : A\), or as \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type. This property allows us to reason about sum types by \emph{case analysis}, which we will define later.
-% \end{itemize}
-
 \section{Rules associated with a type}
 
 Each type in dependent type theory is characterized by a collection of rules that specify how it can be formed, inhabited, used, and reasoned about:
@@ -1106,7 +1052,7 @@ If under the assumption \(x:A\) we can build a term \(t:B\), then
   \judg{\Gamma}{\lambda x.\,t}{A \to B}
 }
 \]
-We often write \(\lambda x:A.\,t\) to annotate the parameter type explicitly.
+We often write \(\lambda x:A.\,t\) to annotate the parameter type explicitly. Note that $t$ here represents an expression that potentially depends on $x$. So, strictly, speaking $\lambda x.\,t$ is just a ``name'' of a function, it's not an explicitly stated function.
 
 \paragraph{Elimination (application).}
 Given a function \(f:A\to B\) and an argument \(a:A\), we may \emph{apply} \(f\) to \(a\):
@@ -1131,7 +1077,7 @@ Applying a lambda to an argument computes by capture-avoiding substitution:
   \teq{\Gamma}{(\lambda x.\,t)\,a}{t[a/x]}{B}
 }
 \]
-Here \(t[a/x]\) denotes capture-avoiding substitution of \(a\) for \(x\) in \(t\).
+Here \(t[a/x]\) denotes capture-avoiding substitution of \(a\) for \(x\) in \(t\). This rule specifies the computation \emph{only when the function is (definitionally) a \(\lambda\)-abstraction}. In general, an application \(f\,a\) need not reduce unless \(f\) \emph{unfolds} to a lambda; otherwise \(f\,a\) is a neutral term.
 
 \paragraph{Difference between elimination and computation.}
 It is important to distinguish the \emph{elimination} rule from the \emph{computation} rule.
@@ -1218,6 +1164,53 @@ Given \(f:B\to C\) and \(g:A\to B\), define
 f \circ g \;\defeq\; \lambda x\!:\!A.\, f\,(g\,x) \;:\; A \to C.
 \]
 
+\section{Constructors and canonical forms}
+
+In type theory, each type is defined by specifying its \emph{constructors}—the canonical ways of producing elements (terms) of that type.  
+Constructors determine how we can \emph{build} terms of a given type, and by extension, how we can reason about or eliminate them. Elimination rules say how to take a value of that type apart (or act on it) to produce something else.
+
+Formally, for a type \(A : \Type\), a constructor is a term-forming rule of the form
+\[
+\frac{\Gamma \vdash t_1 : A_1 \quad \dots \quad \Gamma \vdash t_n : A_n}{\Gamma \vdash c(t_1,\dots,t_n) : A},
+\]
+which specifies how a new term \(c(t_1,\dots,t_n)\) of type \(A\) can be formed from existing terms of other types \(A_1,\dots,A_n\).  
+Each type comes with one or more constructors that uniquely determine its canonical inhabitants.
+
+\paragraph{Clarifying note.}
+At this stage, the expression \(c(t_1,\dots,t_n)\) should be understood
+\emph{purely syntactically}: it describes how to \emph{form} a new term from
+existing ones using a constructor symbol \(c\) of arity \(n\).
+The parentheses indicate syntactic application of a constructor to its arguments, not functional application. \(c(t_1,\dots,t_n)\) does not denote a function being applied to arguments, but simply the construction of a new term according to the formation rule of the type. For example, for a nullary constructor (\(n=0\)) such as the unit value \(\star\),
+the general rule specializes to
+\[
+\frac{}{\,\Gamma \vdash \star : \mathbf{1}\,},
+\]
+indicating that \(\star\) is a canonical term of the unit type.
+
+Syntactically, \(c\) is a \emph{constructor symbol} for the type \(A\), not a previously defined function you prove correct. The rule \emph{declares} that supplying \(n\) arguments of the listed types yields a canonical element of \(A\).
+
+Just like for function type formation \(A \to B\), this is a \emph{rule of the calculus}: it \emph{licenses} forming \(c(t_1,\dots,t_n)\) once the premises hold. 
+
+\paragraph{Other examples.}
+
+\begin{itemize}
+  \item \textbf{Empty type.}  
+  The empty type \(\mathbf{0}\) has \emph{no} constructors.  
+  Therefore, there are no canonical terms \(a : \mathbf{0}\). This make sense, since by definition the empty type is empty.
+
+  \item \textbf{Sum type.}  
+  For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+  \[
+  \frac{a : A}{\inl(a) : A + B}
+  \qquad\text{and}\qquad
+  \frac{b : B}{\inr(b) : A + B}.
+  \]
+  The first constructor \(\inl\) injects values from the left component \(A\),
+  and the second constructor \(\inr\) injects values from the right component \(B\).
+  As we will see later, these two rules fully describe the canonical forms of elements of \(A + B\).
+  
+  \textit{Intuition.} Constructors are the primitive building blocks of each type. For instance, every term of \(A + B\) is either constructed as \(\inl(a)\) for some \(a : A\), or as \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type. This property allows us to reason about sum types by \emph{case analysis}, which we will define later.
+\end{itemize}
 
 \section{Sum types and the \texorpdfstring{$\mathsf{inl}$}{inl} and \texorpdfstring{$\mathsf{inr}$}{inr} constructors}
 
@@ -1328,6 +1321,18 @@ This expresses that both \(A\) and \(B\) “feed into” the coproduct \(A + B\)
 }{
   \judg{\Gamma}{\caseof(s,\,f,\,g)}{C}
 }
+\]
+$\caseof(s,\,f,\,g)$ performs a case distinction depending on whether \(b\) is
+\(\mathsf{true}\) or \(\mathsf{false}\):
+\[
+\caseof(s,\;
+  f,\;
+  g)
+\;\text{means}\;
+\begin{cases}
+f & \text{if } s = \mathsf{true},\\
+g & \text{if } s = \mathsf{false}.
+\end{cases}
 \]
 
 \medskip
