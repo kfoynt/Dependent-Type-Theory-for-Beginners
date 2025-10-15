@@ -48,18 +48,6 @@ For example:
 0 : \Nat, \quad \mathsf{false} : \Bool, \quad ``hello \ world" : \String.
 \]
 
-% \paragraph{Unit and empty types.} Two fundamental base types in dependent type theory are the \emph{unit type} and the \emph{empty type}.  
-
-% \textit{The unit type.} The unit type, written \(\mathbf{1} : \Type\), is a type with exactly one canonical inhabitant, commonly written \(\star\).
-% \[
-% \mathbf{1} : \Type, \qquad \star : \mathbf{1}.
-% \]
-
-% \textit{The empty type.} The empty type, written \(\mathbf{0} : \Type\), is a type with no inhabitants.  
-% There are no terms \(a : \mathbf{0}\).  
-
-% In subsequent sections, we will define more complex types.
-
 \subsection*{Universes}
 
 But what about \(\Nat\) and \(\Bool\) themselves?  
@@ -1018,6 +1006,329 @@ Each type in dependent type theory is characterized by a collection of rules tha
   \item (optional) \textbf{Uniqueness principles}, which are judgmental equalities explaining how every element of the type is uniquely determined by the results of elimination rules applied to it.
 \end{itemize}
 
+\section{Constructors and canonical forms}
+
+In type theory, each type is defined by specifying its \emph{constructors}—the canonical ways of producing elements (terms) of that type.  
+Constructors determine how we can \emph{build} terms of a given type, and by extension, how we can reason about or eliminate them. Elimination rules say how to take a value of that type apart (or act on it) to produce something else.
+
+Formally, for a type \(A : \Type\), a constructor is a term-forming rule of the form
+\[
+\frac{\Gamma \vdash t_1 : A_1 \quad \dots \quad \Gamma \vdash t_n : A_n}{\Gamma \vdash c(t_1,\dots,t_n) : A},
+\]
+which specifies how a new term \(c(t_1,\dots,t_n)\) of type \(A\) can be formed from existing terms of other types \(A_1,\dots,A_n\).  
+Each type comes with one or more constructors that uniquely determine its canonical inhabitants.
+
+\paragraph{Clarifying note.}
+At this stage, the expression \(c(t_1,\dots,t_n)\) should be understood
+\emph{purely syntactically}: it describes how to \emph{form} a new term from
+existing ones using a constructor symbol \(c\) of arity \(n\).
+The parentheses indicate syntactic application of a constructor to its arguments, not functional application. \(c(t_1,\dots,t_n)\) does not denote a function being applied to arguments, but simply the construction of a new term according to the formation rule of the type. For example, for a nullary constructor (\(n=0\)) such as the unit value \(\star\),
+the general rule specializes to
+\[
+\frac{}{\,\Gamma \vdash \star : \mathbf{1}\,},
+\]
+indicating that \(\star\) is a canonical term of the unit type.
+
+Syntactically, \(c\) is a \emph{constructor symbol} for the type \(A\), not a previously defined function you prove correct. The rule \emph{declares} that supplying \(n\) arguments of the listed types yields a canonical element of \(A\).
+
+Just like for function type formation \(A \to B\), this is a \emph{rule of the calculus}: it \emph{licenses} forming \(c(t_1,\dots,t_n)\) once the premises hold. 
+
+\paragraph{Other examples.}
+
+\begin{itemize}
+  \item \textbf{Empty type.}  
+  The empty type \(\mathbf{0}\) has \emph{no} constructors.  
+  Therefore, there are no canonical terms \(a : \mathbf{0}\). This make sense, since by definition the empty type is empty.
+
+  \item \textbf{Sum type.}  
+  For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+  \[
+  \frac{a : A}{\inl(a) : A + B}
+  \qquad\text{and}\qquad
+  \frac{b : B}{\inr(b) : A + B}.
+  \]
+  The first constructor \(\inl\) injects values from the left component \(A\),
+  and the second constructor \(\inr\) injects values from the right component \(B\).
+  As we will see later, these two rules fully describe the canonical forms of elements of \(A + B\).
+  
+  \textit{Intuition.} Constructors are the primitive building blocks of each type. For instance, every term of \(A + B\) is either constructed as \(\inl(a)\) for some \(a : A\), or as \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type. This property allows us to reason about sum types by \emph{case analysis}, which we will define later.
+\end{itemize}
+
+\section{Non-dependent sum types and the \texorpdfstring{$\mathsf{inl}$}{inl} and \texorpdfstring{$\mathsf{inr}$}{inr} constructors}
+
+Given two types \(A : \Type\) and \(B : \Type\), their \emph{sum type}
+is written
+\[
+A + B : \Type.
+\]
+% A term of type \(A + B\) is either a term of \(A\) or a term of \(B\).
+But how is $A + B$ constructed? We first need to introduce the constructors of the type $A+B$. For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
+\[
+\frac{a : A}{\inl(a) : A + B}
+\qquad\text{and}\qquad
+\frac{b : B}{\inr(b) : A + B}.
+\]
+The first constructor \(\inl\) injects values into $A+B$ from the left component \(A\), and the second constructor \(\inr\) injects values into $A+B$ from the right component \(B\). These two rules fully describe the canonical forms of elements of \(A + B\).
+
+\paragraph{Intuition.}
+Constructors are the primitive building blocks of each type.  
+For instance, every term of \(A + B\) is either \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.
+
+\paragraph{Reminder.} At this stage, the expression \(\inl\) should be understood \emph{purely syntactically}: it describes how to \emph{form} a new term from existing ones using a constructor symbol \( \inl \). The parentheses indicate syntactic application of a constructor to its arguments, not functional application. We have not yet introduced functions, so \( \inl \) does not denote a function being applied to arguments, but simply the construction of a new term according to the formation rule of the type.
+
+\paragraph{Example: How \(A + B\) looks like?}
+
+To make the idea of a sum type concrete, let us take two small finite types:
+\[
+A \defeq \{\mathsf{red},\, \mathsf{green}\}, 
+\qquad
+B \defeq \{0,\,1\}.
+\]
+Then the sum type \(A + B\) consists of all elements of \(A\) tagged by \(\inl\),
+and all elements of \(B\) tagged by \(\inr\):
+\[
+A + B \;=\;
+\{\inl(\mathsf{red}),\; \inl(\mathsf{green}),\;
+  \inr(0),\; \inr(1)\}.
+\]
+Intuitively, \(\inl(a)\) means “a value coming from \(A\), left side of the sum,” and
+\(\inr(b)\) means “a value coming from \(B\), right side of the sum.”. 
+
+\bigskip
+\noindent
+This can be illustrated in tabular form:
+
+\[
+\begin{array}{c|c|c}
+\text{Element of } A & \text{Constructor} & \text{Element of } A + B \\ \hline
+\mathsf{red} & \inl & \inl(\mathsf{red}) \\
+\mathsf{green} & \inl & \inl(\mathsf{green}) \\ \hline
+0 & \inr & \inr(0) \\
+1 & \inr & \inr(1)
+\end{array}
+\]
+In general, every element of \(A + B\) is either of the form
+\(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\). If desired, we can also represent the injections diagrammatically:
+\[
+\begin{tikzcd}
+A \arrow[dr, "\inl"'] & & B \arrow[dl, "\inr"] \\
+& A + B &
+\end{tikzcd}
+\]
+This expresses that both \(A\) and \(B\) “feed into” the coproduct \(A + B\) using the constructors $\inl$ and $\inr$.
+
+\subsection*{Rules for the non-dependent sum type \texorpdfstring{$A + B$}{A + B}}
+
+\paragraph{Formation.}
+\[
+\inferrule*[right=\rulename{\(+\)-Form}]{
+  \judg{\Gamma}{A}{\Type_i}
+  \quad
+  \judg{\Gamma}{B}{\Type_i}
+}{
+  \judg{\Gamma}{A + B}{\Type_i}
+}
+\]
+
+\paragraph{Introduction.}
+\[
+\inferrule*[right=\rulename{\(+\)-Intro\(_1\)}]{
+  \judg{\Gamma}{a}{A}
+}{
+  \judg{\Gamma}{\inl(a)}{A + B}
+}
+\qquad
+\inferrule*[right=\rulename{\(+\)-Intro\(_2\)}]{
+  \judg{\Gamma}{b}{B}
+}{
+  \judg{\Gamma}{\inr(b)}{A + B}
+}
+\]
+
+\paragraph{Elimination (case analysis).}
+\[
+\inferrule*[right=\rulename{\(+\)-Elim}]{
+  \judg{\Gamma}{e}{A + B}
+  \quad
+  \judg{\Gamma,\,x\!:\!A}{c}{C}
+  \quad
+  \judg{\Gamma,\,y\!:\!B}{d}{C}
+}{
+  \judg{\Gamma}{
+    \caseof(e,\;\lambda x.\,c,\;\lambda y.\,d)
+  }{C}
+}
+\]
+
+\paragraph{Computation (\(\beta\)-rules).}
+\[
+\inferrule*[right=\rulename{\(+\)-Comp\(_1\)}]{
+  \judg{\Gamma}{a}{A}
+  \quad
+  \judg{\Gamma,\,x\!:\!A}{c}{C}
+  \quad
+  \judg{\Gamma,\,y\!:\!B}{d}{C}
+}{
+  \teq{\Gamma}{
+    \caseof(\inl(a),\;\lambda x.\,c,\;\lambda y.\,d)
+  }{
+    c[a/x]
+  }{C}
+}
+\]
+\[
+\inferrule*[right=\rulename{\(+\)-Comp\(_2\)}]{
+  \judg{\Gamma}{b}{B}
+  \quad
+  \judg{\Gamma,\,x\!:\!A}{c}{C}
+  \quad
+  \judg{\Gamma,\,y\!:\!B}{d}{C}
+}{
+  \teq{\Gamma}{
+    \caseof(\inr(b),\;\lambda x.\,c,\;\lambda y.\,d)
+  }{
+    d[b/y]
+  }{C}
+}
+\]
+
+\paragraph{Explanation.}
+\begin{itemize}
+  \item \(A + B\) is the type whose terms are either of the form \(\inl(a)\) with \(a:A\),
+        or \(\inr(b)\) with \(b:B\).
+  \item The \emph{elimination rule} introduces the case distinction:
+        to define a term of type \(C\) from \(e:A+B\),
+        it suffices to specify what to do in each case.
+  \item The \emph{computation rules} express that the case analysis
+        reduces to the corresponding branch when the argument
+        is a canonical injection.
+\end{itemize}
+
+
+\section{Non-dependent product types and the \texorpdfstring{$\mathsf{pair}$}{pair} constructor}
+
+\subsection*{Definition of the product type}
+
+Given two types \(A : \Type\) and \(B : \Type\), their \emph{product type} is written
+\[
+A \times B : \Type.
+\]
+A term of type \(A \times B\) represents a \emph{pair} consisting of one element from \(A\) and one element from \(B\).  
+In other words, it corresponds to “both an \(A\) and a \(B\) together.”
+
+\paragraph{Constructors.}
+The canonical way to construct a term of the product type is by using the pairing constructor:
+\[
+\frac{a : A \quad b : B}{(a, b) : A \times B}.
+\]
+Thus, for any \(a : A\) and \(b : B\), the ordered pair \((a, b)\) is a term of \(A \times B\).
+
+\paragraph{Eliminators (projections).}
+Given a term \(p : A \times B\), we can \emph{eliminate} it by projecting its components:
+\[
+\frac{p : A \times B}{\pi_1(p) : A}
+\qquad\text{and}\qquad
+\frac{p : A \times B}{\pi_2(p) : B}.
+\]
+Intuitively, \(\pi_1\) extracts the first component and \(\pi_2\) extracts the second component of the pair.
+
+\paragraph{Computation rules.}
+The product type satisfies the following definitional equalities:
+\[
+\pi_1(a,b) \jdeq a, \qquad \pi_2(a,b) \jdeq b.
+\]
+That is, projecting a pair retrieves its components directly.
+
+\paragraph{Intuition.}
+If sum types \(A + B\) represent “either an \(A\) or a \(B\),”  
+then product types \(A \times B\) represent “both an \(A\) and a \(B\).”  
+For example, if \(A\) is the type of names and \(B\) is the type of ages,  
+then \(A \times B\) is the type of \emph{name–age pairs}.
+
+\paragraph{Example.}
+Let
+\[
+A \defeq \{\mathsf{red},\, \mathsf{green}\}, \qquad
+B \defeq \{0,\, 1\}.
+\]
+Then the product type \(A \times B\) consists of all possible ordered pairs:
+\[
+A \times B \;=\;
+\{(\mathsf{red},0),\; (\mathsf{red},1),\; (\mathsf{green},0),\; (\mathsf{green},1)\}.
+\]
+
+\bigskip
+\noindent
+This can be visualized in a grid form:
+\[
+\begin{array}{c|cc}
+\times & 0 & 1 \\ \hline
+\mathsf{red} & (\mathsf{red},0) & (\mathsf{red},1) \\
+\mathsf{green} & (\mathsf{green},0) & (\mathsf{green},1)
+\end{array}
+\]
+Every element of \(A \times B\) is one of these four pairs.
+
+\paragraph{Diagrammatic intuition.}
+\[
+\begin{tikzcd}
+& A \times B \arrow[dl, "\pi_1"'] \arrow[dr, "\pi_2"] & \\
+A & & B
+\end{tikzcd}
+\]
+This expresses that the product type \(A \times B\) can be projected back to its two components via the maps \(\pi_1\) and \(\pi_2\).
+
+\subsection*{Rules for the non-dependent product \(A \times B\)}
+
+We record the standard \emph{formation}, \emph{introduction} (pairing),
+\emph{elimination} (projections), and \emph{computation} rules for the
+non-dependent product.
+
+\paragraph{Formation.}
+\[
+\inferrule*[right=\rulename{\(\times\)-Form}]{
+  \judg{\Gamma}{A}{\Type}
+  \quad
+  \judg{\Gamma}{B}{\Type}
+}{
+  \judg{\Gamma}{A \times B}{\Type}
+}
+\]
+
+\paragraph{Introduction (pairing).}
+\[
+\inferrule*[right=\rulename{\(\times\)-Intro}]{
+  \judg{\Gamma}{a}{A}
+  \quad
+  \judg{\Gamma}{b}{B}
+}{
+  \judg{\Gamma}{(a,b)}{A \times B}
+}
+\]
+
+\paragraph{Elimination (projections).}
+\[
+\inferrule*[right=\rulename{\(\times\)-Elim\(_1\)}]{
+  \judg{\Gamma}{p}{A \times B}
+}{
+  \judg{\Gamma}{\pi_1(p)}{A}
+}
+\qquad
+\inferrule*[right=\rulename{\(\times\)-Elim\(_2\)}]{
+  \judg{\Gamma}{p}{A \times B}
+}{
+  \judg{\Gamma}{\pi_2(p)}{B}
+}
+\]
+
+\paragraph{Computation (\(\beta\)-rules for projections).}
+\[
+\teq{\Gamma}{\pi_1(a,b)}{a}{A}
+\qquad\qquad
+\teq{\Gamma}{\pi_2(a,b)}{b}{B}
+\]
+These specify that projecting a canonical pair returns its components.
+
 \section{Functions and the arrow type \texorpdfstring{(\(A \to B\))}{(A -> B)}}
 
 A \emph{function} from a type \(A\) to a type \(B\) is a term of the
@@ -1164,309 +1475,216 @@ Given \(f:B\to C\) and \(g:A\to B\), define
 f \circ g \;\defeq\; \lambda x\!:\!A.\, f\,(g\,x) \;:\; A \to C.
 \]
 
-\section{Constructors and canonical forms}
+\section{Dependent function types (\texorpdfstring{$\Pi$}{Pi}-types)}
 
-In type theory, each type is defined by specifying its \emph{constructors}—the canonical ways of producing elements (terms) of that type.  
-Constructors determine how we can \emph{build} terms of a given type, and by extension, how we can reason about or eliminate them. Elimination rules say how to take a value of that type apart (or act on it) to produce something else.
-
-Formally, for a type \(A : \Type\), a constructor is a term-forming rule of the form
+So far we have introduced non-dependent functions \(A \to B\), where both the domain \(A\)
+and codomain \(B\) are fixed types.  
+In the dependent setting, however, the result type may itself depend on the input.
+To capture this, we introduce the \emph{dependent function type}, written
 \[
-\frac{\Gamma \vdash t_1 : A_1 \quad \dots \quad \Gamma \vdash t_n : A_n}{\Gamma \vdash c(t_1,\dots,t_n) : A},
+\Pi(x\!:\!A).\,B,
 \]
-which specifies how a new term \(c(t_1,\dots,t_n)\) of type \(A\) can be formed from existing terms of other types \(A_1,\dots,A_n\).  
-Each type comes with one or more constructors that uniquely determine its canonical inhabitants.
+where \(B\) may depend on the particular value \(x:A\).
+Intuitively, an element of \(\Pi(x\!:\!A).\,B\) is a function that, given an input \(a:A\),
+returns a term of type \(B[a/x]\).
 
-\paragraph{Clarifying note.}
-At this stage, the expression \(c(t_1,\dots,t_n)\) should be understood
-\emph{purely syntactically}: it describes how to \emph{form} a new term from
-existing ones using a constructor symbol \(c\) of arity \(n\).
-The parentheses indicate syntactic application of a constructor to its arguments, not functional application. \(c(t_1,\dots,t_n)\) does not denote a function being applied to arguments, but simply the construction of a new term according to the formation rule of the type. For example, for a nullary constructor (\(n=0\)) such as the unit value \(\star\),
-the general rule specializes to
+\subsection*{Motivation}
+
+A non-dependent function \(A \to B\) can be seen as a special case of a dependent function:
+if \(B\) does not depend on \(x:A\), then
 \[
-\frac{}{\,\Gamma \vdash \star : \mathbf{1}\,},
+\Pi(x\!:\!A).\,B \;\jdeq\; A \to B.
 \]
-indicating that \(\star\) is a canonical term of the unit type.
-
-Syntactically, \(c\) is a \emph{constructor symbol} for the type \(A\), not a previously defined function you prove correct. The rule \emph{declares} that supplying \(n\) arguments of the listed types yields a canonical element of \(A\).
-
-Just like for function type formation \(A \to B\), this is a \emph{rule of the calculus}: it \emph{licenses} forming \(c(t_1,\dots,t_n)\) once the premises hold. 
-
-\paragraph{Other examples.}
-
-\begin{itemize}
-  \item \textbf{Empty type.}  
-  The empty type \(\mathbf{0}\) has \emph{no} constructors.  
-  Therefore, there are no canonical terms \(a : \mathbf{0}\). This make sense, since by definition the empty type is empty.
-
-  \item \textbf{Sum type.}  
-  For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
-  \[
-  \frac{a : A}{\inl(a) : A + B}
-  \qquad\text{and}\qquad
-  \frac{b : B}{\inr(b) : A + B}.
-  \]
-  The first constructor \(\inl\) injects values from the left component \(A\),
-  and the second constructor \(\inr\) injects values from the right component \(B\).
-  As we will see later, these two rules fully describe the canonical forms of elements of \(A + B\).
-  
-  \textit{Intuition.} Constructors are the primitive building blocks of each type. For instance, every term of \(A + B\) is either constructed as \(\inl(a)\) for some \(a : A\), or as \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type. This property allows us to reason about sum types by \emph{case analysis}, which we will define later.
-\end{itemize}
-
-\section{Sum types and the \texorpdfstring{$\mathsf{inl}$}{inl} and \texorpdfstring{$\mathsf{inr}$}{inr} constructors}
-
-Given two types \(A : \Type\) and \(B : \Type\), their \emph{sum type}
-is written
-\[
-A + B : \Type.
-\]
-% A term of type \(A + B\) is either a term of \(A\) or a term of \(B\).
-But how is $A + B$ constructed? We first need to introduce the constructors of the type $A+B$. For two types \(A, B : \Type\), the sum type \(A + B\) has two constructors:
-\[
-\frac{a : A}{\inl(a) : A + B}
-\qquad\text{and}\qquad
-\frac{b : B}{\inr(b) : A + B}.
-\]
-The first constructor \(\inl\) injects values into $A+B$ from the left component \(A\), and the second constructor \(\inr\) injects values into $A+B$ from the right component \(B\). These two rules fully describe the canonical forms of elements of \(A + B\).
-
-\paragraph{Intuition.}
-Constructors are the primitive building blocks of each type.  
-For instance, every term of \(A + B\) is either \(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\); there are no other canonical ways to obtain a term of this type.
-
-\paragraph{Reminder.} At this stage, the expression \(\inl\) should be understood \emph{purely syntactically}: it describes how to \emph{form} a new term from existing ones using a constructor symbol \( \inl \). The parentheses indicate syntactic application of a constructor to its arguments, not functional application. We have not yet introduced functions, so \( \inl \) does not denote a function being applied to arguments, but simply the construction of a new term according to the formation rule of the type.
-
-\paragraph{Example: How \(A + B\) looks like?}
-
-To make the idea of a sum type concrete, let us take two small finite types:
-\[
-A \defeq \{\mathsf{red},\, \mathsf{green}\}, 
-\qquad
-B \defeq \{0,\,1\}.
-\]
-Then the sum type \(A + B\) consists of all elements of \(A\) tagged by \(\inl\),
-and all elements of \(B\) tagged by \(\inr\):
-\[
-A + B \;=\;
-\{\inl(\mathsf{red}),\; \inl(\mathsf{green}),\;
-  \inr(0),\; \inr(1)\}.
-\]
-Intuitively, \(\inl(a)\) means “a value coming from \(A\), left side of the sum,” and
-\(\inr(b)\) means “a value coming from \(B\), right side of the sum.”. 
-
-\bigskip
-\noindent
-This can be illustrated in tabular form:
-
-\[
-\begin{array}{c|c|c}
-\text{Element of } A & \text{Constructor} & \text{Element of } A + B \\ \hline
-\mathsf{red} & \inl & \inl(\mathsf{red}) \\
-\mathsf{green} & \inl & \inl(\mathsf{green}) \\ \hline
-0 & \inr & \inr(0) \\
-1 & \inr & \inr(1)
-\end{array}
-\]
-In general, every element of \(A + B\) is either of the form
-\(\inl(a)\) for some \(a : A\), or \(\inr(b)\) for some \(b : B\). If desired, we can also represent the injections diagrammatically:
-\[
-\begin{tikzcd}
-A \arrow[dr, "\inl"'] & & B \arrow[dl, "\inr"] \\
-& A + B &
-\end{tikzcd}
-\]
-This expresses that both \(A\) and \(B\) “feed into” the coproduct \(A + B\) using the constructors $\inl$ and $\inr$.
-
-\medskip
-\noindent\textbf{Rules for the sum type \(A + B\).}
-
-\medskip
-\noindent
-\emph{Formation.}
-\[
-\inferrule*[right=\rulename{Form}]{
-  \judg{\Gamma}{A}{\Type}
-  \quad
-  \judg{\Gamma}{B}{\Type}
-}{
-  \judg{\Gamma}{A + B}{\Type}
-}
-\]
-
-\medskip
-\noindent
-\emph{Introduction.}
-\[
-\inferrule*[right=\rulename{IntroL}]{
-  \judg{\Gamma}{a}{A}
-}{
-  \judg{\Gamma}{\inl(a)}{A + B}
-}
-\qquad
-\inferrule*[right=\rulename{IntroR}]{
-  \judg{\Gamma}{b}{B}
-}{
-  \judg{\Gamma}{\inr(b)}{A + B}
-}
-\]
-
-\medskip
-\noindent
-\emph{Elimination (case analysis).}
-\[
-\inferrule*[right=\rulename{Elim}]{
-  \judg{\Gamma}{s}{A + B}
-  \quad
-  \judg{\Gamma}{f}{A \to C}
-  \quad
-  \judg{\Gamma}{g}{B \to C}
-}{
-  \judg{\Gamma}{\caseof(s,\,f,\,g)}{C}
-}
-\]
-$\caseof(s,\,f,\,g)$ performs a case distinction depending on whether \(b\) is
-\(\mathsf{true}\) or \(\mathsf{false}\):
-\[
-\caseof(s,\;
-  f,\;
-  g)
-\;\text{means}\;
-\begin{cases}
-f & \text{if } s = \mathsf{true},\\
-g & \text{if } s = \mathsf{false}.
-\end{cases}
-\]
-
-\medskip
-\noindent
-\emph{Computation.}
-\[
-\teq{\Gamma}{\caseof(\inl(a),\,f,\,g)}{f\,a}{C}
-\qquad\qquad
-\teq{\Gamma}{\caseof(\inr(b),\,f,\,g)}{g\,b}{C}
-\]
-
-\section{Product types and the \texorpdfstring{$\mathsf{pair}$}{pair} constructor}
-
-\subsection*{Definition of the product type}
-
-Given two types \(A : \Type\) and \(B : \Type\), their \emph{product type} is written
-\[
-A \times B : \Type.
-\]
-A term of type \(A \times B\) represents a \emph{pair} consisting of one element from \(A\) and one element from \(B\).  
-In other words, it corresponds to “both an \(A\) and a \(B\) together.”
-
-\paragraph{Constructors.}
-The canonical way to construct a term of the product type is by using the pairing constructor:
-\[
-\frac{a : A \quad b : B}{(a, b) : A \times B}.
-\]
-Thus, for any \(a : A\) and \(b : B\), the ordered pair \((a, b)\) is a term of \(A \times B\).
-
-\paragraph{Eliminators (projections).}
-Given a term \(p : A \times B\), we can \emph{eliminate} it by projecting its components:
-\[
-\frac{p : A \times B}{\pi_1(p) : A}
-\qquad\text{and}\qquad
-\frac{p : A \times B}{\pi_2(p) : B}.
-\]
-Intuitively, \(\pi_1\) extracts the first component and \(\pi_2\) extracts the second component of the pair.
-
-\paragraph{Computation rules.}
-The product type satisfies the following definitional equalities:
-\[
-\pi_1(a,b) \jdeq a, \qquad \pi_2(a,b) \jdeq b.
-\]
-That is, projecting a pair retrieves its components directly.
-
-\paragraph{Intuition.}
-If sum types \(A + B\) represent “either an \(A\) or a \(B\),”  
-then product types \(A \times B\) represent “both an \(A\) and a \(B\).”  
-For example, if \(A\) is the type of names and \(B\) is the type of ages,  
-then \(A \times B\) is the type of \emph{name–age pairs}.
+Thus, \(\Pi\)-types generalize ordinary function types.
 
 \paragraph{Example.}
-Let
+Suppose \(A \defeq \Bool\) and define a family of types
 \[
-A \defeq \{\mathsf{red},\, \mathsf{green}\}, \qquad
-B \defeq \{0,\, 1\}.
+B(x) \defeq
+\begin{cases}
+  \Nat & \text{if } x = \mathsf{true},\\
+  \String & \text{if } x = \mathsf{false}.
+\end{cases}
 \]
-Then the product type \(A \times B\) consists of all possible ordered pairs:
+Then
 \[
-A \times B \;=\;
-\{(\mathsf{red},0),\; (\mathsf{red},1),\; (\mathsf{green},0),\; (\mathsf{green},1)\}.
+\Pi(x\!:\!\Bool).\,B(x)
+\]
+is the type of functions that return a natural number when given \(\mathsf{true}\)
+and a string when given \(\mathsf{false}\).  
+In this case, we can think of
+\[
+\Pi(x\!:\!\Bool).\,B(x) \;\jdeq\; B(\mathsf{true}) \times B(\mathsf{false})
+  \;\jdeq\; \Nat \times \String,
+\]
+a “heterogeneous product’’ where each branch has a possibly different codomain.
+
+\subsection*{Rules for the dependent function type}
+
+\paragraph{Formation.}
+If \(A\) is a type and \(B\) is a type that may depend on \(x:A\),
+then the dependent function type \(\Pi(x\!:\!A).B\) is a type:
+\[
+\inferrule*[right=\rulename{\(\Pi\)-Form}]{
+  \judg{\Gamma}{A}{\Type_i}
+  \quad
+  \judg{\Gamma,\,x\!:\!A}{B}{\Type_i}
+}{
+  \judg{\Gamma}{\Pi(x\!:\!A).B}{\Type_i}
+}
 \]
 
-\bigskip
-\noindent
-This can be visualized in a grid form:
+\paragraph{Introduction (dependent lambda abstraction).}
+If under the assumption \(x:A\) we can derive \(b:B\),
+then we may form a dependent function:
 \[
-\begin{array}{c|cc}
-\times & 0 & 1 \\ \hline
-\mathsf{red} & (\mathsf{red},0) & (\mathsf{red},1) \\
-\mathsf{green} & (\mathsf{green},0) & (\mathsf{green},1)
-\end{array}
+\inferrule*[right=\rulename{\(\Pi\)-Intro}]{
+  \judg{\Gamma,\,x\!:\!A}{b}{B}
+}{
+  \judg{\Gamma}{\lambda(x\!:\!A).\,b}{\Pi(x\!:\!A).B}
+}
 \]
-Every element of \(A \times B\) is one of these four pairs.
+Here \(\lambda(x\!:\!A).\,b\) binds all free occurrences of \(x\) in \(b\).
 
-\paragraph{Diagrammatic intuition.}
+\paragraph{Elimination (application).}
+Given a dependent function \(f : \Pi(x\!:\!A).B\) and an argument \(a:A\),
+we can apply \(f\) to \(a\):
 \[
-\begin{tikzcd}
-& A \times B \arrow[dl, "\pi_1"'] \arrow[dr, "\pi_2"] & \\
-A & & B
-\end{tikzcd}
+\inferrule*[right=\rulename{\(\Pi\)-Elim}]{
+  \judg{\Gamma}{f}{\Pi(x\!:\!A).B}
+  \quad
+  \judg{\Gamma}{a}{A}
+}{
+  \judg{\Gamma}{f(a)}{B[a/x]}
+}
 \]
-This expresses that the product type \(A \times B\) can be projected back to its two components via the maps \(\pi_1\) and \(\pi_2\).
+The result of applying \(f\) to \(a\) lies in the instance of \(B\)
+where every occurrence of \(x\) is replaced by \(a\).
 
-\subsection*{Rules for the non-dependent product \(A \times B\)}
+\paragraph{Computation (\(\beta\)-rule).}
+When a function introduced by \(\lambda(x\!:\!A).\,b\) is applied to an argument \(a\),
+it computes by substitution:
+\[
+\inferrule*[right=\rulename{\(\Pi\)-Comp}]{
+  \judg{\Gamma,\,x\!:\!A}{b}{B}
+  \quad
+  \judg{\Gamma}{a}{A}
+}{
+  \teq{\Gamma}{(\lambda(x\!:\!A).\,b)(a)}{b[a/x]}{B[a/x]}
+}
+\]
+This generalizes the ordinary \(\beta\)-reduction rule of non-dependent functions.
 
-We record the standard \emph{formation}, \emph{introduction} (pairing),
-\emph{elimination} (projections), and \emph{computation} rules for the
-non-dependent product.
+\subsection*{Remarks}
+
+\begin{itemize}
+  \item The expression \(\lambda(x\!:\!A).\,b\) binds all free occurrences of \(x\) in \(b\).
+  \item If \(B\) does not depend on \(x\), we recover the ordinary function type \(A \to B\).
+  \item The computation rule ensures that applying a dependent function
+        to an argument performs substitution in the codomain type.
+\end{itemize}
+
+In summary, the dependent function type \(\Pi(x\!:\!A).B\)
+represents the type of functions that return a result of type \(B[a/x]\)
+depending on their input \(a:A\).
+
+\section{Dependent pair types (\texorpdfstring{$\Sigma$}{Sigma}-types)}
+
+A dependent pair (or \emph{$\Sigma$-type}) generalizes the non-dependent product
+\(A \times B\) to the setting where the second component may depend on the first.
+Given a type \(A\) and a family \(B\) of types indexed by \(x:A\), we write
+\[
+\Sigma(x\!:\!A)\,B
+\]
+for the type of pairs \((a,b)\) with \(a:A\) and \(b:B[a/x]\).
+
+\subsection*{Rules for the dependent pair type}
 
 \paragraph{Formation.}
 \[
-\inferrule*[right=\rulename{\(\times\)-Form}]{
-  \judg{\Gamma}{A}{\Type}
+\inferrule*[right=\rulename{$\Sigma$-Form}]{
+  \judg{\Gamma}{A}{\Type_i}
   \quad
-  \judg{\Gamma}{B}{\Type}
+  \judg{\Gamma,\,x\!:\!A}{B}{\Type_i}
 }{
-  \judg{\Gamma}{A \times B}{\Type}
+  \judg{\Gamma}{\Sigma(x\!:\!A)\,B}{\Type_i}
 }
 \]
 
 \paragraph{Introduction (pairing).}
 \[
-\inferrule*[right=\rulename{\(\times\)-Intro}]{
+\inferrule*[right=\rulename{$\Sigma$-Intro}]{
+  \judg{\Gamma,\,x\!:\!A}{B}{\Type_i}
+  \quad
   \judg{\Gamma}{a}{A}
   \quad
-  \judg{\Gamma}{b}{B}
+  \judg{\Gamma}{b}{B[a/x]}
 }{
-  \judg{\Gamma}{(a,b)}{A \times B}
+  \judg{\Gamma}{(a,b)}{\Sigma(x\!:\!A)\,B}
 }
 \]
 
-\paragraph{Elimination (projections).}
+\paragraph{Elimination (dependent eliminator / induction).}
+Let the \emph{motive} \(C\) be a family depending on a pair \(z:\Sigma(x\!:\!A)\,B\).
+We write bindings as \(z.C\) to indicate \(z\) is bound in \(C\), and \(x,y.g\) to
+indicate \(x\) and \(y\) are bound in \(g\). Then:
 \[
-\inferrule*[right=\rulename{\(\times\)-Elim\(_1\)}]{
-  \judg{\Gamma}{p}{A \times B}
+\resizebox{\linewidth}{!}{$
+\inferrule*[right=\rulename{$\Sigma$-Elim}]{
+  \judg{\Gamma,\,z\!:\!\Sigma(x\!:\!A)\,B}{C}{\Type_i}
+  \quad
+  \judg{\Gamma,\,x\!:\!A,\,y\!:\!B}{g}{C[(x,y)/z]}
+  \quad
+  \judg{\Gamma}{p}{\Sigma(x\!:\!A)\,B}
 }{
-  \judg{\Gamma}{\pi_1(p)}{A}
+  \judg{\Gamma}{
+    \mathsf{ind}_{\Sigma(x\!:\!A)B}\!\big(z.C,\; x,y.g,\; p\big)
+  }{C[p/z]}
 }
-\qquad
-\inferrule*[right=\rulename{\(\times\)-Elim\(_2\)}]{
-  \judg{\Gamma}{p}{A \times B}
-}{
-  \judg{\Gamma}{\pi_2(p)}{B}
-}
+$}
 \]
 
-\paragraph{Computation (\(\beta\)-rules for projections).}
+\paragraph{Computation (\(\beta\)-rule).}
+On a canonical pair, the eliminator computes by substituting the components:
 \[
-\teq{\Gamma}{\pi_1(a,b)}{a}{A}
-\qquad\qquad
-\teq{\Gamma}{\pi_2(a,b)}{b}{B}
+\resizebox{\linewidth}{!}{$
+\inferrule*[right=\rulename{$\Sigma$-Comp}]{
+  \judg{\Gamma,\,z\!:\!\Sigma(x\!:\!A)\,B}{C}{\Type_i}
+  \quad
+  \judg{\Gamma,\,x\!:\!A,\,y\!:\!B}{g}{C[(x,y)/z]}
+  \quad
+  \judg{\Gamma}{a'}{A}
+  \quad
+  \judg{\Gamma}{b'}{B[a'/x]}
+}{
+  \teq{\Gamma}{
+    \mathsf{ind}_{\Sigma(x\!:\!A)B}\!\big(z.C,\; x,y.g,\; (a',b')\big)
+  }{
+    g[a'/x,\, b'/y]
+  }{C[(a',b')/z]}
+}
+$}
 \]
-These specify that projecting a canonical pair returns its components.
+
+\subsection*{Binding and notation}
+
+\begin{itemize}
+  \item The expression \(\Sigma(x\!:\!A)\,B\) \emph{binds} \(x\) in \(B\); free occurrences
+        of \(x\) in \(B\) refer to the first component of the pair.
+  \item In the eliminator, \(z.C\) binds \(z\) in \(C\), and \(x,y.g\) bind \(x\) and \(y\) in \(g\).
+        We treat \(\mathsf{ind}_{\Sigma(x\!:\!A)B}\) as a primitive with these binders.
+\end{itemize}
+
+\subsection*{Non-dependent special case}
+
+When \(B\) does not contain \(x\) free, the dependent pair collapses to the ordinary
+(cartesian) product; we \emph{define}
+\[
+A \times B \;\defeq\; \Sigma(x\!:\!A)\,B.
+\]
+In this case, the introduction rule specializes to pairing \((a,b):A\times B\),
+and the eliminator yields the usual projections (derivable).
+% (We do not postulate a separate uniqueness principle for $\Sigma$ here.)
 
 % \section{Dependent product types}
 
